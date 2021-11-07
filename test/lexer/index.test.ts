@@ -79,7 +79,6 @@ test('NextToken should parse simple monkey code', () => {
   for (let i = 0; i < tests.length; i++) {
     const test = tests[i];
     const tok = l.nextToken();
-    console.log(tok, test);
     expect(tok.literal).toBe(test.expectedLiteral);
     expect(tok.type).toBe(test.expectedType);
   }
