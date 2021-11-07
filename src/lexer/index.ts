@@ -4,6 +4,8 @@ export type TokenType =
   | 'EOF'
   | 'IDENT'
   | '='
+  | '=='
+  | '!='
   | '+'
   | '-'
   | '*'
@@ -63,17 +65,25 @@ export class Lexer {
     }
   }
 
-  nextToken = () => {
+  nextToken() {
     let tok: Token;
 
     this.skipWhitespace();
 
     switch (this.ch) {
       case '=':
-        tok = {
-          type: '=',
-          literal: this.ch,
-        };
+        if (this.peekChar() === '=') {
+          this.readChar();
+          tok = {
+            type: '==',
+            literal: '==',
+          };
+        } else {
+          tok = {
+            type: '=',
+            literal: '=',
+          };
+        }
         break;
       case '+':
         tok = {type: '+', literal: this.ch};
@@ -97,7 +107,18 @@ export class Lexer {
         tok = {type: '}', literal: this.ch};
         break;
       case '!':
-        tok = {type: '!', literal: this.ch};
+        if (this.peekChar() === '=') {
+          this.readChar();
+          tok = {
+            type: '!=',
+            literal: '!=',
+          };
+        } else {
+          tok = {
+            type: '!',
+            literal: '!',
+          };
+        }
         break;
       case '-':
         tok = {type: '-', literal: this.ch};
@@ -140,7 +161,7 @@ export class Lexer {
 
     this.readChar();
     return tok;
-  };
+  }
 
   isLetter = (ch: string | null) => {
     if (ch === null) return false;
@@ -167,5 +188,13 @@ export class Lexer {
     }
 
     return this.source.slice(position, this.position);
+  }
+
+  peekChar() {
+    if (this.readPosition >= this.source.length) {
+      return null;
+    } else {
+      return this.source[this.readPosition];
+    }
   }
 }

@@ -126,3 +126,28 @@ test('NextToken Should Parse if else', () => {
     expect(tok.type).toBe(test.expectedType);
   }
 });
+
+test('NextToken Should Parse == and !=', () => {
+  const input = `5 == 10;
+  5 != 10;`;
+
+  const tests: {expectedType: TokenType; expectedLiteral: string}[] = [
+    {expectedType: 'INT', expectedLiteral: '5'},
+    {expectedType: '==', expectedLiteral: '=='},
+    {expectedType: 'INT', expectedLiteral: '10'},
+    {expectedType: ';', expectedLiteral: ';'},
+    {expectedType: 'INT', expectedLiteral: '5'},
+    {expectedType: '!=', expectedLiteral: '!='},
+    {expectedType: 'INT', expectedLiteral: '10'},
+    {expectedType: ';', expectedLiteral: ';'},
+  ];
+
+  const l = new Lexer(input);
+
+  for (let i = 0; i < tests.length; i++) {
+    const test = tests[i];
+    const tok = l.nextToken();
+    expect(tok.literal).toBe(test.expectedLiteral);
+    expect(tok.type).toBe(test.expectedType);
+  }
+});
