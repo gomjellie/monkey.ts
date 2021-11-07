@@ -19,7 +19,12 @@ export type TokenType =
   | '}'
   | 'FUNCTION'
   | 'LET'
-  | 'INT';
+  | 'INT'
+  | 'IF'
+  | 'ELSE'
+  | 'RETURN'
+  | 'TRUE'
+  | 'FALSE';
 
 export type Token = {
   type: TokenType;

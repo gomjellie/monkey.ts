@@ -1,10 +1,15 @@
 import {TokenType} from '../lexer';
 
-type Keywords = 'fn' | 'let';
+type Keywords = 'fn' | 'let' | 'if' | 'else' | 'return' | 'true' | 'false';
 
 const keywords: {[key in Keywords]: TokenType} = {
   fn: 'FUNCTION',
   let: 'LET',
+  if: 'IF',
+  else: 'ELSE',
+  return: 'RETURN',
+  true: 'TRUE',
+  false: 'FALSE',
 };
 
 function isKeywords(key: string): key is Keywords {

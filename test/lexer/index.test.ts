@@ -89,3 +89,40 @@ test('NextToken should parse simple monkey code', () => {
     expect(tok.type).toBe(test.expectedType);
   }
 });
+
+test('NextToken Should Parse if else', () => {
+  const input = `if (5 < 10) {
+    return true;
+  } else {
+    return false;
+  }`;
+
+  const tests: {expectedType: TokenType; expectedLiteral: string}[] = [
+    {expectedType: 'IF', expectedLiteral: 'if'},
+    {expectedType: '(', expectedLiteral: '('},
+    {expectedType: 'INT', expectedLiteral: '5'},
+    {expectedType: '<', expectedLiteral: '<'},
+    {expectedType: 'INT', expectedLiteral: '10'},
+    {expectedType: ')', expectedLiteral: ')'},
+    {expectedType: '{', expectedLiteral: '{'},
+    {expectedType: 'RETURN', expectedLiteral: 'return'},
+    {expectedType: 'TRUE', expectedLiteral: 'true'},
+    {expectedType: ';', expectedLiteral: ';'},
+    {expectedType: '}', expectedLiteral: '}'},
+    {expectedType: 'ELSE', expectedLiteral: 'else'},
+    {expectedType: '{', expectedLiteral: '{'},
+    {expectedType: 'RETURN', expectedLiteral: 'return'},
+    {expectedType: 'FALSE', expectedLiteral: 'false'},
+    {expectedType: ';', expectedLiteral: ';'},
+    {expectedType: '}', expectedLiteral: '}'},
+  ];
+
+  const l = new Lexer(input);
+
+  for (let i = 0; i < tests.length; i++) {
+    const test = tests[i];
+    const tok = l.nextToken();
+    expect(tok.literal).toBe(test.expectedLiteral);
+    expect(tok.type).toBe(test.expectedType);
+  }
+});
