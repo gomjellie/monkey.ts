@@ -5,7 +5,13 @@ export type TokenType =
   | 'IDENT'
   | '='
   | '+'
+  | '-'
+  | '*'
+  | '/'
+  | '!'
   | ','
+  | '<'
+  | '>'
   | ';'
   | '('
   | ')'
@@ -84,6 +90,24 @@ export class Lexer {
         break;
       case '}':
         tok = {type: '}', literal: this.ch};
+        break;
+      case '!':
+        tok = {type: '!', literal: this.ch};
+        break;
+      case '-':
+        tok = {type: '-', literal: this.ch};
+        break;
+      case '/':
+        tok = {type: '/', literal: this.ch};
+        break;
+      case '*':
+        tok = {type: '*', literal: this.ch};
+        break;
+      case '<':
+        tok = {type: '<', literal: this.ch};
+        break;
+      case '>':
+        tok = {type: '>', literal: this.ch};
         break;
       case null:
         tok = {type: 'EOF', literal: ''};

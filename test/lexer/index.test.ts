@@ -1,7 +1,7 @@
 import {TokenType, Lexer} from '../../src/lexer';
 
 test('NextToken should parse special characters', () => {
-  const input = '=+(){},;';
+  const input = '=+(){},;!-/*<>';
 
   const tests: {expectedType: TokenType; expectedLiteral: string}[] = [
     {expectedType: '=', expectedLiteral: '='},
@@ -12,6 +12,12 @@ test('NextToken should parse special characters', () => {
     {expectedType: '}', expectedLiteral: '}'},
     {expectedType: ',', expectedLiteral: ','},
     {expectedType: ';', expectedLiteral: ';'},
+    {expectedType: '!', expectedLiteral: '!'},
+    {expectedType: '-', expectedLiteral: '-'},
+    {expectedType: '/', expectedLiteral: '/'},
+    {expectedType: '*', expectedLiteral: '*'},
+    {expectedType: '<', expectedLiteral: '<'},
+    {expectedType: '>', expectedLiteral: '>'},
   ];
 
   const l = new Lexer(input);
