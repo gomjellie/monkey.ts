@@ -3,7 +3,7 @@ import {Token} from './lexer';
 abstract class Node {
   constructor() {}
 
-  abstract TokenLiteral(): string;
+  abstract tokenLiteral(): string;
 }
 
 abstract class Statement extends Node {
@@ -17,7 +17,7 @@ abstract class Expression extends Node {
 class Identifier implements Expression {
   constructor(public value: string) {}
 
-  TokenLiteral(): string {
+  tokenLiteral(): string {
     return this.value;
   }
 
@@ -27,17 +27,17 @@ class Identifier implements Expression {
 class LetStatement implements Statement {
   token: Token;
   name: Identifier;
-  expression: Expression;
+  value: Expression;
 
-  constructor(token: Token, name: Identifier, expression: Expression) {
+  constructor(token: Token, name: Identifier, value: Expression) {
     this.token = token;
     this.name = name;
-    this.expression = expression;
+    this.value = value;
   }
 
   statementNode() {}
 
-  TokenLiteral() {
+  tokenLiteral() {
     return this.token.literal;
   }
 }
@@ -50,13 +50,13 @@ class Program extends Node {
     this.statements = statements;
   }
 
-  TokenLiteral(): string {
+  tokenLiteral(): string {
     if (this.statements.length > 0) {
-      return this.statements[0].TokenLiteral();
+      return this.statements[0].tokenLiteral();
     } else {
       return '';
     }
   }
 }
 
-export {Node, Statement, Expression, Program};
+export {Node, Statement, Expression, LetStatement, Program};
