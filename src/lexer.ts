@@ -1,4 +1,4 @@
-import {lookupIdentifier} from '../token';
+import {lookupIdentifier} from './token';
 export type TokenType =
   | 'ILLEGAL'
   | 'EOF'

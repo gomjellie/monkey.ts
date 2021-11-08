@@ -1,4 +1,4 @@
-import {TokenType, Lexer} from '../../src/lexer';
+import {TokenType, Lexer} from '../src/lexer';
 
 test('NextToken should parse special characters', () => {
   const input = '=+(){},;!-/*<>';

@@ -1,4 +1,4 @@
-import {TokenType} from '../lexer';
+import {TokenType} from './lexer';
 
 type Keywords = 'fn' | 'let' | 'if' | 'else' | 'return' | 'true' | 'false';
 
