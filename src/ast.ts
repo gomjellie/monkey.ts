@@ -59,4 +59,4 @@ class Program extends Node {
   }
 }
 
-export {Node, Statement, Expression, LetStatement, Program};
+export {Node, Statement, Expression, LetStatement, Program, Identifier};

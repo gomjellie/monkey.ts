@@ -15,7 +15,7 @@ let foobar = 838383;
   const program = p.parseProgram();
   expect(program).not.toBeNull();
   if (program === null) return;
-  expect(program.statements.length).not.toBe(3);
+  expect(program.statements.length).toBe(3);
 
   const tests: {expectedIdentifier: string}[] = [
     {expectedIdentifier: 'x'},
