@@ -16,7 +16,7 @@ abstract class Expression extends Node {
 }
 
 class Identifier implements Expression {
-  constructor(public value: string) {}
+  constructor(public token: Token, public value: string) {}
 
   tokenLiteral(): string {
     return this.value;

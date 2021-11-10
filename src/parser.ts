@@ -60,7 +60,13 @@ class Parser {
       return null;
     }
 
-    const name = new Identifier(this.curToken.literal);
+    const name = new Identifier(
+      {
+        literal: this.curToken.literal,
+        type: 'IDENT',
+      },
+      this.curToken.literal
+    );
 
     if (!this.expectPeek('=')) {
       return null;
