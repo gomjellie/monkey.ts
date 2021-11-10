@@ -2,7 +2,7 @@ import {Statement, LetStatement} from '../src/ast';
 import {Lexer} from '../src/lexer';
 import {Parser} from '../src/parser';
 
-test('Parser Should parse let expressions', () => {
+test('Parser Should parse let statements', () => {
   const input = `
 let x = 5;
 let y = 10;
@@ -28,6 +28,28 @@ let foobar = 838383;
     const stmt = program.statements[i];
     const name = tests[i].expectedIdentifier;
     testLetStatement(stmt, name);
+  }
+});
+
+test('Parser Should parse return statements', () => {
+  const input = `
+return 5;
+return 10;
+return 993322;
+  `;
+
+  const l = new Lexer(input);
+  const p = new Parser(l);
+
+  const program = p.parseProgram();
+  checkParserErrors(p);
+  expect(program).not.toBeNull();
+  if (program === null) return;
+  expect(program.statements.length).toBe(3);
+
+  for (let i = 0; i < program.statements.length; i++) {
+    const stmt = program.statements[i];
+    expect(stmt.tokenLiteral()).toBe('return');
   }
 });
 

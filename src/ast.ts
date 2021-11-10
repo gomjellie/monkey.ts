@@ -42,6 +42,22 @@ class LetStatement implements Statement {
   }
 }
 
+class ReturnStatement implements Statement {
+  token: Token;
+  returnValue: Expression;
+
+  constructor(token: Token, returnValue: Expression) {
+    this.token = token;
+    this.returnValue = returnValue;
+  }
+
+  statementNode() {}
+
+  tokenLiteral() {
+    return this.token.literal;
+  }
+}
+
 class Program extends Node {
   public statements: Statement[];
 
@@ -59,4 +75,12 @@ class Program extends Node {
   }
 }
 
-export {Node, Statement, Expression, LetStatement, Program, Identifier};
+export {
+  Node,
+  Statement,
+  Expression,
+  LetStatement,
+  ReturnStatement,
+  Program,
+  Identifier,
+};

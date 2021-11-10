@@ -1,4 +1,10 @@
-import {LetStatement, Program, Statement, Identifier} from './ast';
+import {
+  LetStatement,
+  ReturnStatement,
+  Program,
+  Statement,
+  Identifier,
+} from './ast';
 import {Lexer, Token, TokenType} from './lexer';
 
 class Parser {
@@ -30,6 +36,24 @@ class Parser {
     this.peekToken = this.l.nextToken();
   }
 
+  curTokenIs(t: TokenType): boolean {
+    return this.curToken.type === t;
+  }
+
+  peekTokenIs(t: TokenType): boolean {
+    return this.peekToken.type === t;
+  }
+
+  expectPeek(t: TokenType): boolean {
+    if (this.peekToken.type === t) {
+      this.nextToken();
+      return true;
+    } else {
+      this.peekError(t);
+      return false;
+    }
+  }
+
   parseLetStatement(): Statement | null {
     const token = this.curToken;
     if (!this.expectPeek('IDENT')) {
@@ -49,26 +73,15 @@ class Parser {
     return new LetStatement(token, name, name); // TODO: 3번째 인자 value로 넘긴 name 나중에 변경해야함.
   }
 
-  curTokenIs(t: TokenType): boolean {
-    return this.curToken.type === t;
-  }
-
-  peekTokenIs(t: TokenType): boolean {
-    return this.peekToken.type === t;
-  }
-
-  expectPeek(t: TokenType): boolean {
-    if (this.peekToken.type === t) {
-      this.nextToken();
-      return true;
-    } else {
-      this.peekError(t);
-      return false;
-    }
-  }
-
   parseReturnStatement(): Statement | null {
-    throw new Error('Not implemented');
+    const token = this.curToken;
+    this.nextToken();
+
+    while (this.curToken.type !== ';') {
+      this.nextToken();
+    }
+
+    return new ReturnStatement(token, new Identifier(token.literal)); // TODO: 2번째 인자 returnValue 넘긴 identifier 나중에 변경해야함.
   }
 
   parseExpressionStatement(): Statement | null {
