@@ -5,6 +5,7 @@ class Parser {
   public l: Lexer;
   public curToken: Token;
   public peekToken: Token;
+  public errors: string[] = [];
 
   constructor(l: Lexer) {
     this.l = l;
@@ -12,6 +13,16 @@ class Parser {
     this.peekToken = {type: 'EOF', literal: 'initialPeekToken'};
     this.nextToken();
     this.nextToken();
+  }
+
+  getErrors(): string[] {
+    return this.errors;
+  }
+
+  peekError(t: TokenType): void {
+    this.errors.push(
+      `expected next token to be ${t}, got ${this.peekToken.type} instead`
+    );
   }
 
   nextToken() {
@@ -51,6 +62,7 @@ class Parser {
       this.nextToken();
       return true;
     } else {
+      this.peekError(t);
       return false;
     }
   }

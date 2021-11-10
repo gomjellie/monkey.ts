@@ -13,6 +13,7 @@ let foobar = 838383;
   const p = new Parser(l);
 
   const program = p.parseProgram();
+  checkParserErrors(p);
   expect(program).not.toBeNull();
   if (program === null) return;
   expect(program.statements.length).toBe(3);
@@ -40,4 +41,12 @@ function testLetStatement(s: Statement, name: string) {
   expect(letStmt.name.value).toBe(name);
 
   expect(letStmt.name.tokenLiteral()).toBe(name);
+}
+
+function checkParserErrors(p: Parser) {
+  const errors = p.getErrors();
+  if (errors.length > 0) {
+    console.error(errors);
+  }
+  expect(errors.length).toBe(0);
 }
