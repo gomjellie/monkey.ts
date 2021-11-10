@@ -3,6 +3,7 @@ import {
   LetStatement,
   Identifier,
   ExpressionStatement,
+  IntegerLiteral,
 } from '../src/ast';
 import {Lexer} from '../src/lexer';
 import {Parser} from '../src/parser';
@@ -77,6 +78,27 @@ test('Parser Should parse Identifier foobar;', () => {
   const ident: Identifier = stmt.expression as Identifier;
   expect(ident.value).toBe('foobar');
   expect(ident.tokenLiteral()).toBe('foobar');
+});
+
+test('Parser Should parse ExpressionStatement Integer Literal 5', () => {
+  const input = '5;';
+  const l = new Lexer(input);
+  const p = new Parser(l);
+  const program = p.parseProgram();
+  checkParserErrors(p);
+
+  expect(program).not.toBeNull();
+  if (program === null) return;
+  expect(program.statements.length).toBe(1);
+
+  expect(program.statements[0]).toBeInstanceOf(ExpressionStatement);
+  const stmt = program.statements[0] as ExpressionStatement;
+  expect(stmt.tokenLiteral()).toBe('5');
+
+  expect(stmt.expression).toBeInstanceOf(IntegerLiteral);
+  const literal = stmt.expression as IntegerLiteral;
+  expect(literal.value).toBe(5);
+  expect(literal.tokenLiteral()).toBe('5');
 });
 
 function testLetStatement(s: Statement, name: string) {

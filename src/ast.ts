@@ -29,6 +29,20 @@ class Identifier implements Expression {
   expressionNode(): void {}
 }
 
+class IntegerLiteral implements Expression {
+  constructor(public token: Token, public value: number) {}
+
+  tokenLiteral(): string {
+    return this.token.literal;
+  }
+
+  toString(): string {
+    return this.token.literal;
+  }
+
+  expressionNode(): void {}
+}
+
 class LetStatement implements Statement {
   token: Token;
   name: Identifier;
@@ -121,6 +135,7 @@ class Program extends Node {
 export {
   Node,
   Statement,
+  IntegerLiteral,
   Expression,
   LetStatement,
   ReturnStatement,

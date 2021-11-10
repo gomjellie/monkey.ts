@@ -6,6 +6,7 @@ import {
   Identifier,
   Expression,
   ExpressionStatement,
+  IntegerLiteral,
 } from './ast';
 import {Lexer, Token, TokenType} from './lexer';
 
@@ -33,12 +34,21 @@ class Parser {
     this.curToken = {type: 'ILLEGAL', literal: 'initialCurtoken'};
     this.peekToken = {type: 'EOF', literal: 'initialPeekToken'};
     this.registerPrefix('IDENT', this.parseIdentifier);
+    this.registerPrefix('INT', this.parseIntegerLiteral);
     this.nextToken();
     this.nextToken();
   }
 
   parseIdentifier = () => {
     return new Identifier(this.curToken, this.curToken.literal);
+  };
+
+  parseIntegerLiteral = (): Expression => {
+    const literal = new IntegerLiteral(
+      this.curToken,
+      parseInt(this.curToken.literal, 10)
+    );
+    return literal;
   };
 
   registerPrefix(tokenType: TokenType, fn: PrefixParseFn) {
