@@ -4,6 +4,7 @@ abstract class Node {
   constructor() {}
 
   abstract tokenLiteral(): string;
+  abstract toString(): string;
 }
 
 abstract class Statement extends Node {
@@ -21,15 +22,19 @@ class Identifier implements Expression {
     return this.value;
   }
 
+  toString(): string {
+    return this.value;
+  }
+
   expressionNode(): void {}
 }
 
 class LetStatement implements Statement {
   token: Token;
   name: Identifier;
-  value: Expression;
+  value?: Expression;
 
-  constructor(token: Token, name: Identifier, value: Expression) {
+  constructor(token: Token, name: Identifier, value?: Expression) {
     this.token = token;
     this.name = name;
     this.value = value;
@@ -40,13 +45,19 @@ class LetStatement implements Statement {
   tokenLiteral() {
     return this.token.literal;
   }
+
+  toString() {
+    return `${this.tokenLiteral()} ${this.name.toString()} = ${
+      this.value?.toString() ?? ''
+    };`;
+  }
 }
 
 class ReturnStatement implements Statement {
   token: Token;
-  returnValue: Expression;
+  returnValue?: Expression;
 
-  constructor(token: Token, returnValue: Expression) {
+  constructor(token: Token, returnValue?: Expression) {
     this.token = token;
     this.returnValue = returnValue;
   }
@@ -55,6 +66,30 @@ class ReturnStatement implements Statement {
 
   tokenLiteral() {
     return this.token.literal;
+  }
+
+  toString(): string {
+    return `${this.tokenLiteral()} ${this.returnValue?.toString() ?? ''};`;
+  }
+}
+
+class ExpressionStatement implements Statement {
+  token: Token;
+  expression?: Expression;
+
+  constructor(token: Token, expression?: Expression) {
+    this.token = token;
+    this.expression = expression;
+  }
+
+  statementNode() {}
+
+  tokenLiteral() {
+    return this.token.literal;
+  }
+
+  toString(): string {
+    return this.expression?.toString() ?? '';
   }
 }
 
@@ -73,6 +108,14 @@ class Program extends Node {
       return '';
     }
   }
+
+  toString(): string {
+    let out = '';
+    for (let i = 0; i < this.statements.length; i++) {
+      out += this.statements[i].toString();
+    }
+    return out;
+  }
 }
 
 export {
@@ -81,6 +124,7 @@ export {
   Expression,
   LetStatement,
   ReturnStatement,
+  ExpressionStatement,
   Program,
   Identifier,
 };

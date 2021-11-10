@@ -70,7 +70,7 @@ class Parser {
       this.nextToken();
     }
 
-    return new LetStatement(token, name, name); // TODO: 3번째 인자 value로 넘긴 name 나중에 변경해야함.
+    return new LetStatement(token, name);
   }
 
   parseReturnStatement(): Statement | null {
@@ -81,7 +81,7 @@ class Parser {
       this.nextToken();
     }
 
-    return new ReturnStatement(token, new Identifier(token.literal)); // TODO: 2번째 인자 returnValue 넘긴 identifier 나중에 변경해야함.
+    return new ReturnStatement(token); // TODO: 2번째 인자 returnValue 넘긴 identifier 나중에 변경해야함.
   }
 
   parseExpressionStatement(): Statement | null {
