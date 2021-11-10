@@ -4,21 +4,49 @@ import {
   Program,
   Statement,
   Identifier,
+  Expression,
+  ExpressionStatement,
 } from './ast';
 import {Lexer, Token, TokenType} from './lexer';
+
+type PrefixParseFn = (parser: Parser) => Expression;
+type InfixParseFn = (parser: Parser, left: Expression) => Expression;
+type Precedence =
+  | 'LOWEST'
+  | 'EQUALS'
+  | 'LESSGREATER'
+  | 'SUM'
+  | 'PRODUCT'
+  | 'PREFIX'
+  | 'CALL';
 
 class Parser {
   public l: Lexer;
   public curToken: Token;
   public peekToken: Token;
   public errors: string[] = [];
+  public prefixParseFns: {[key in TokenType]?: PrefixParseFn} = {};
+  public infixParseFns: {[key in TokenType]?: InfixParseFn} = {};
 
   constructor(l: Lexer) {
     this.l = l;
     this.curToken = {type: 'ILLEGAL', literal: 'initialCurtoken'};
     this.peekToken = {type: 'EOF', literal: 'initialPeekToken'};
+    this.registerPrefix('IDENT', this.parseIdentifier);
     this.nextToken();
     this.nextToken();
+  }
+
+  parseIdentifier = () => {
+    return new Identifier(this.curToken, this.curToken.literal);
+  };
+
+  registerPrefix(tokenType: TokenType, fn: PrefixParseFn) {
+    this.prefixParseFns[tokenType] = fn;
+  }
+
+  registerInfix(tokenType: TokenType, fn: InfixParseFn) {
+    this.infixParseFns[tokenType] = fn;
   }
 
   getErrors(): string[] {
@@ -90,8 +118,25 @@ class Parser {
     return new ReturnStatement(token); // TODO: 2번째 인자 returnValue 넘긴 identifier 나중에 변경해야함.
   }
 
+  parseExpression(precedence: Precedence) {
+    const prefix = this.prefixParseFns[this.curToken.type];
+    if (!prefix) {
+      return undefined;
+    }
+    const leftExp = prefix(this);
+
+    return leftExp;
+  }
+
   parseExpressionStatement(): Statement | null {
-    throw new Error('Not implemented');
+    const stmt = new ExpressionStatement(this.curToken);
+    stmt.expression = this.parseExpression('LOWEST');
+
+    if (this.peekTokenIs(';')) {
+      this.nextToken();
+    }
+
+    return stmt;
   }
 
   parseStatement(): Statement | null {
@@ -101,7 +146,7 @@ class Parser {
       case 'RETURN':
         return this.parseReturnStatement();
       default:
-        return null;
+        return this.parseExpressionStatement();
     }
   }
 
