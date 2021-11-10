@@ -43,6 +43,24 @@ class IntegerLiteral implements Expression {
   expressionNode(): void {}
 }
 
+class PrefixExpression implements Expression {
+  constructor(
+    public token: Token,
+    public operator: string,
+    public right?: Expression
+  ) {}
+
+  tokenLiteral(): string {
+    return this.token.literal;
+  }
+
+  toString(): string {
+    return `(${this.operator}${this.right?.toString() ?? ''})`;
+  }
+
+  expressionNode(): void {}
+}
+
 class LetStatement implements Statement {
   token: Token;
   name: Identifier;
@@ -137,6 +155,7 @@ export {
   Statement,
   IntegerLiteral,
   Expression,
+  PrefixExpression,
   LetStatement,
   ReturnStatement,
   ExpressionStatement,

@@ -7,6 +7,7 @@ import {
   Expression,
   ExpressionStatement,
   IntegerLiteral,
+  PrefixExpression,
 } from './ast';
 import {Lexer, Token, TokenType} from './lexer';
 
@@ -35,6 +36,8 @@ class Parser {
     this.peekToken = {type: 'EOF', literal: 'initialPeekToken'};
     this.registerPrefix('IDENT', this.parseIdentifier);
     this.registerPrefix('INT', this.parseIntegerLiteral);
+    this.registerPrefix('-', this.parsePrefixExpression);
+    this.registerPrefix('!', this.parsePrefixExpression);
     this.nextToken();
     this.nextToken();
   }
@@ -128,9 +131,22 @@ class Parser {
     return new ReturnStatement(token); // TODO: 2번째 인자 returnValue 넘긴 identifier 나중에 변경해야함.
   }
 
+  parsePrefixExpression = (): Expression => {
+    const expression = new PrefixExpression(
+      this.curToken,
+      this.curToken.literal
+    );
+    this.nextToken();
+
+    expression.right = this.parseExpression('PREFIX');
+
+    return expression;
+  };
+
   parseExpression(precedence: Precedence) {
     const prefix = this.prefixParseFns[this.curToken.type];
     if (!prefix) {
+      this.noPrefixParseFnError(this.curToken.type);
       return undefined;
     }
     const leftExp = prefix(this);
@@ -170,6 +186,10 @@ class Parser {
       this.nextToken();
     }
     return program;
+  }
+
+  noPrefixParseFnError(t: TokenType): void {
+    this.errors.push(`no prefix parse function for ${t} found`);
   }
 }
 
