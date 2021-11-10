@@ -5,6 +5,7 @@ import {
   ExpressionStatement,
   IntegerLiteral,
   PrefixExpression,
+  InfixExpression,
 } from '../src/ast';
 import {Lexer} from '../src/lexer';
 import {Parser} from '../src/parser';
@@ -129,6 +130,46 @@ test('Parser should parse Prefix Expressions', () => {
     expect(exp.right).toBeInstanceOf(IntegerLiteral);
     const right = exp.right as IntegerLiteral;
     testIntegerLiteral(right, test.integerValue);
+  }
+});
+
+test('Parser Should parse Infix Expressions', () => {
+  const infixTests: {
+    input: string;
+    leftValue: number;
+    operator: string;
+    rightValue: number;
+  }[] = [
+    {input: '5 + 5;', leftValue: 5, operator: '+', rightValue: 5},
+    {input: '5 - 5;', leftValue: 5, operator: '-', rightValue: 5},
+    {input: '5 * 5;', leftValue: 5, operator: '*', rightValue: 5},
+    {input: '5 / 5;', leftValue: 5, operator: '/', rightValue: 5},
+    {input: '5 > 5;', leftValue: 5, operator: '>', rightValue: 5},
+    {input: '5 < 5;', leftValue: 5, operator: '<', rightValue: 5},
+    {input: '5 == 5;', leftValue: 5, operator: '==', rightValue: 5},
+    {input: '5 != 5;', leftValue: 5, operator: '!=', rightValue: 5},
+  ];
+
+  for (let i = 0; i < infixTests.length; i++) {
+    const test = infixTests[i];
+    const l = new Lexer(test.input);
+    const p = new Parser(l);
+    const program = p.parseProgram();
+    checkParserErrors(p);
+
+    expect(program).not.toBeNull();
+    if (program === null) return;
+    expect(program.statements.length).toBe(1);
+
+    expect(program.statements[0]).toBeInstanceOf(ExpressionStatement);
+    const stmt = program.statements[0] as ExpressionStatement;
+
+    expect(stmt.expression).toBeInstanceOf(InfixExpression);
+    const exp = stmt.expression as InfixExpression;
+    expect(exp.left).toBeInstanceOf(IntegerLiteral);
+    testIntegerLiteral(exp.left as IntegerLiteral, test.leftValue);
+    expect(exp.right).toBeInstanceOf(IntegerLiteral);
+    testIntegerLiteral(exp.right as IntegerLiteral, test.rightValue);
   }
 });
 

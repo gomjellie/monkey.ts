@@ -8,11 +8,12 @@ import {
   ExpressionStatement,
   IntegerLiteral,
   PrefixExpression,
+  InfixExpression,
 } from './ast';
 import {Lexer, Token, TokenType} from './lexer';
 
-type PrefixParseFn = (parser: Parser) => Expression;
-type InfixParseFn = (parser: Parser, left: Expression) => Expression;
+type PrefixParseFn = () => Expression;
+type InfixParseFn = (left: Expression) => Expression;
 type Precedence =
   | 'LOWEST'
   | 'EQUALS'
@@ -21,6 +22,31 @@ type Precedence =
   | 'PRODUCT'
   | 'PREFIX'
   | 'CALL';
+
+/** return true if a < b */
+function Precedence_cmp(a: Precedence, b: Precedence): boolean {
+  const precedenceMap: {[key: string]: number} = {
+    LOWEST: 0,
+    EQUALS: 1,
+    LESSGREATER: 2,
+    SUM: 3,
+    PRODUCT: 4,
+    PREFIX: 5,
+    CALL: 6,
+  };
+  return precedenceMap[a] - precedenceMap[b] < 0;
+}
+
+const PRECEDENCES: {[key in TokenType]?: Precedence} = {
+  '==': 'EQUALS',
+  '!=': 'EQUALS',
+  '<': 'LESSGREATER',
+  '>': 'LESSGREATER',
+  '+': 'SUM',
+  '-': 'SUM',
+  '*': 'PRODUCT',
+  '/': 'PRODUCT',
+};
 
 class Parser {
   public l: Lexer;
@@ -38,6 +64,14 @@ class Parser {
     this.registerPrefix('INT', this.parseIntegerLiteral);
     this.registerPrefix('-', this.parsePrefixExpression);
     this.registerPrefix('!', this.parsePrefixExpression);
+    this.registerInfix('+', this.parseInfixExpression);
+    this.registerInfix('-', this.parseInfixExpression);
+    this.registerInfix('*', this.parseInfixExpression);
+    this.registerInfix('/', this.parseInfixExpression);
+    this.registerInfix('==', this.parseInfixExpression);
+    this.registerInfix('!=', this.parseInfixExpression);
+    this.registerInfix('<', this.parseInfixExpression);
+    this.registerInfix('>', this.parseInfixExpression);
     this.nextToken();
     this.nextToken();
   }
@@ -143,13 +177,46 @@ class Parser {
     return expression;
   };
 
+  curPrecedence(): Precedence {
+    return PRECEDENCES[this.curToken.type] || 'LOWEST';
+  }
+
+  peekPrecedence(): Precedence {
+    return PRECEDENCES[this.peekToken.type] || 'LOWEST';
+  }
+
+  parseInfixExpression = (left: Expression): Expression => {
+    const expression = new InfixExpression(
+      this.curToken,
+      left,
+      this.curToken.literal
+    );
+    const precedence = this.curPrecedence();
+    this.nextToken();
+    expression.right = this.parseExpression(precedence);
+    return expression;
+  };
+
   parseExpression(precedence: Precedence) {
     const prefix = this.prefixParseFns[this.curToken.type];
     if (!prefix) {
       this.noPrefixParseFnError(this.curToken.type);
       return undefined;
     }
-    const leftExp = prefix(this);
+    let leftExp = prefix();
+
+    while (
+      !this.peekTokenIs(';') &&
+      Precedence_cmp(precedence, this.peekPrecedence())
+    ) {
+      const infix = this.infixParseFns[this.peekToken.type];
+      if (!infix) {
+        return leftExp;
+      }
+      this.nextToken();
+
+      leftExp = infix(leftExp);
+    }
 
     return leftExp;
   }
