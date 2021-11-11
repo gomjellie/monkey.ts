@@ -132,11 +132,16 @@ test('Parser Should parse ExpressionStatement Integer Literal 5', () => {
 });
 
 test('Parser should parse Prefix Expressions', () => {
-  const prefixTests: {input: string; operator: string; integerValue: number}[] =
-    [
-      {input: '!5;', operator: '!', integerValue: 5},
-      {input: '-15;', operator: '-', integerValue: 15},
-    ];
+  const prefixTests: {
+    input: string;
+    operator: string;
+    value: number | boolean;
+  }[] = [
+    {input: '!5;', operator: '!', value: 5},
+    {input: '-15;', operator: '-', value: 15},
+    {input: '!true;', operator: '!', value: true},
+    {input: '!false;', operator: '!', value: false},
+  ];
 
   for (let i = 0; i < prefixTests.length; i++) {
     const test = prefixTests[i];
@@ -155,18 +160,19 @@ test('Parser should parse Prefix Expressions', () => {
     expect(stmt.expression).toBeInstanceOf(PrefixExpression);
     const exp = stmt.expression as PrefixExpression;
     expect(exp.operator).toBe(test.operator);
-    expect(exp.right).toBeInstanceOf(IntegerLiteral);
-    const right = exp.right as IntegerLiteral;
-    testIntegerLiteral(right, test.integerValue);
+    expect(exp.right).not.toBeUndefined();
+    if (!exp.right) return;
+    const right = exp.right;
+    testLiteralExpression(right, test.value);
   }
 });
 
 test('Parser Should parse Infix Expressions', () => {
   const infixTests: {
     input: string;
-    leftValue: number;
+    leftValue: number | boolean;
     operator: string;
-    rightValue: number;
+    rightValue: number | boolean;
   }[] = [
     {input: '5 + 5;', leftValue: 5, operator: '+', rightValue: 5},
     {input: '5 - 5;', leftValue: 5, operator: '-', rightValue: 5},
@@ -176,6 +182,19 @@ test('Parser Should parse Infix Expressions', () => {
     {input: '5 < 5;', leftValue: 5, operator: '<', rightValue: 5},
     {input: '5 == 5;', leftValue: 5, operator: '==', rightValue: 5},
     {input: '5 != 5;', leftValue: 5, operator: '!=', rightValue: 5},
+    {input: 'true == true', leftValue: true, operator: '==', rightValue: true},
+    {
+      input: 'true != false',
+      leftValue: true,
+      operator: '!=',
+      rightValue: false,
+    },
+    {
+      input: 'false == false',
+      leftValue: false,
+      operator: '==',
+      rightValue: false,
+    },
   ];
 
   for (let i = 0; i < infixTests.length; i++) {
@@ -288,9 +307,9 @@ function testBooleanLiteral(bl: BooleanExpression, value: boolean) {
 
 function testInfixExpression(
   exp: Expression,
-  left: number | string,
+  left: number | string | boolean,
   operator: string,
-  right: number | string
+  right: number | string | boolean
 ) {
   expect(exp).toBeInstanceOf(InfixExpression);
   const opExp = exp as InfixExpression;
