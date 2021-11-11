@@ -85,11 +85,9 @@ test('Parser Should parse Identifier foobar;', () => {
 });
 
 test('Parser Should parse Boolean Literal', () => {
-  const booleaTests: {input: string; expected: string}[] = [
-    {input: 'true;', expected: 'true'},
-    {input: 'false;', expected: 'false'},
-    {input: '3 > 5 == false', expected: '((3 > 5) == false)'},
-    {input: '3 < 5 == true', expected: '((3 < 5) == true)'},
+  const booleaTests: {input: string; expected: boolean}[] = [
+    {input: 'true;', expected: true},
+    {input: 'false;', expected: false},
   ];
 
   for (let i = 0; i < booleaTests.length; i++) {
@@ -103,10 +101,12 @@ test('Parser Should parse Boolean Literal', () => {
     if (program === null) return;
     expect(program.statements.length).toBe(1);
 
-    const stmt = program.statements[0];
-    expect(stmt).toBeInstanceOf(ExpressionStatement);
-    const expStmt = stmt as ExpressionStatement;
-    expect(expStmt.toString()).toBe(test.expected);
+    expect(program.statements[0]).toBeInstanceOf(ExpressionStatement);
+    const stmt = program.statements[0] as ExpressionStatement;
+    expect(stmt.expression).not.toBeUndefined();
+    if (stmt.expression === undefined) return;
+    expect(stmt.expression).toBeInstanceOf(BooleanExpression);
+    testBooleanLiteral(stmt.expression as BooleanExpression, test.expected);
   }
 });
 
