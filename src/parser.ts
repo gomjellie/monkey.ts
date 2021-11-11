@@ -9,6 +9,7 @@ import {
   IntegerLiteral,
   PrefixExpression,
   InfixExpression,
+  BooleanExpression,
 } from './ast';
 import {Lexer, Token, TokenType} from './lexer';
 
@@ -64,6 +65,8 @@ class Parser {
     this.registerPrefix('INT', this.parseIntegerLiteral);
     this.registerPrefix('-', this.parsePrefixExpression);
     this.registerPrefix('!', this.parsePrefixExpression);
+    this.registerPrefix('TRUE', this.parseBoolean);
+    this.registerPrefix('FALSE', this.parseBoolean);
     this.registerInfix('+', this.parseInfixExpression);
     this.registerInfix('-', this.parseInfixExpression);
     this.registerInfix('*', this.parseInfixExpression);
@@ -86,6 +89,10 @@ class Parser {
       parseInt(this.curToken.literal, 10)
     );
     return literal;
+  };
+
+  parseBoolean = (): Expression => {
+    return new BooleanExpression(this.curToken, this.curTokenIs('TRUE'));
   };
 
   registerPrefix(tokenType: TokenType, fn: PrefixParseFn) {

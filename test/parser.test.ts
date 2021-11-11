@@ -7,6 +7,7 @@ import {
   Expression,
   PrefixExpression,
   InfixExpression,
+  BooleanExpression,
 } from '../src/ast';
 import {Lexer} from '../src/lexer';
 import {Parser} from '../src/parser';
@@ -81,6 +82,32 @@ test('Parser Should parse Identifier foobar;', () => {
   const ident: Identifier = stmt.expression as Identifier;
   expect(ident.value).toBe('foobar');
   expect(ident.tokenLiteral()).toBe('foobar');
+});
+
+test('Parser Should parse Boolean Literal', () => {
+  const booleaTests: {input: string; expected: string}[] = [
+    {input: 'true;', expected: 'true'},
+    {input: 'false;', expected: 'false'},
+    {input: '3 > 5 == false', expected: '((3 > 5) == false)'},
+    {input: '3 < 5 == true', expected: '((3 < 5) == true)'},
+  ];
+
+  for (let i = 0; i < booleaTests.length; i++) {
+    const test = booleaTests[i];
+    const l = new Lexer(test.input);
+    const p = new Parser(l);
+    const program = p.parseProgram();
+    checkParserErrors(p);
+
+    expect(program).not.toBeNull();
+    if (program === null) return;
+    expect(program.statements.length).toBe(1);
+
+    const stmt = program.statements[0];
+    expect(stmt).toBeInstanceOf(ExpressionStatement);
+    const expStmt = stmt as ExpressionStatement;
+    expect(expStmt.toString()).toBe(test.expected);
+  }
 });
 
 test('Parser Should parse ExpressionStatement Integer Literal 5', () => {
@@ -164,13 +191,9 @@ test('Parser Should parse Infix Expressions', () => {
 
     expect(program.statements[0]).toBeInstanceOf(ExpressionStatement);
     const stmt = program.statements[0] as ExpressionStatement;
-
     expect(stmt.expression).toBeInstanceOf(InfixExpression);
     const exp = stmt.expression as InfixExpression;
-    expect(exp.left).toBeInstanceOf(IntegerLiteral);
-    testIntegerLiteral(exp.left as IntegerLiteral, test.leftValue);
-    expect(exp.right).toBeInstanceOf(IntegerLiteral);
-    testIntegerLiteral(exp.right as IntegerLiteral, test.rightValue);
+    testInfixExpression(exp, test.leftValue, test.operator, test.rightValue);
   }
 });
 
@@ -244,12 +267,23 @@ function testIdentifier(exp: Expression, value: string) {
   expect(ident.value).toBe(value);
 }
 
-function testLiteralExpression(exp: Expression, expected: number | string) {
+function testLiteralExpression(
+  exp: Expression,
+  expected: number | string | boolean
+) {
   if (typeof expected === 'number') {
     testIntegerLiteral(exp as IntegerLiteral, expected);
   } else if (typeof expected === 'string') {
     testIdentifier(exp as Identifier, expected);
+  } else if (typeof expected === 'boolean') {
+    testBooleanLiteral(exp as BooleanExpression, expected);
   }
+}
+
+function testBooleanLiteral(bl: BooleanExpression, value: boolean) {
+  expect(bl).not.toBeNull();
+  if (bl === null) return;
+  expect(bl.value).toBe(value);
 }
 
 function testInfixExpression(
