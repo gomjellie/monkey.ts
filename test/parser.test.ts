@@ -4,6 +4,7 @@ import {
   Identifier,
   ExpressionStatement,
   IntegerLiteral,
+  Expression,
   PrefixExpression,
   InfixExpression,
 } from '../src/ast';
@@ -233,4 +234,35 @@ function checkParserErrors(p: Parser) {
     console.error(errors);
   }
   expect(errors.length).toBe(0);
+}
+
+function testIdentifier(exp: Expression, value: string) {
+  expect(exp).not.toBeNull();
+  if (exp === null) return;
+  expect(exp).toBeInstanceOf(Identifier);
+  const ident = exp as Identifier;
+  expect(ident.value).toBe(value);
+}
+
+function testLiteralExpression(exp: Expression, expected: number | string) {
+  if (typeof expected === 'number') {
+    testIntegerLiteral(exp as IntegerLiteral, expected);
+  } else if (typeof expected === 'string') {
+    testIdentifier(exp as Identifier, expected);
+  }
+}
+
+function testInfixExpression(
+  exp: Expression,
+  left: number | string,
+  operator: string,
+  right: number | string
+) {
+  expect(exp).toBeInstanceOf(InfixExpression);
+  const opExp = exp as InfixExpression;
+  testLiteralExpression(opExp.left, left);
+  expect(opExp.operator).toBe(operator);
+  expect(opExp.right).not.toBeUndefined();
+  if (!opExp.right) return;
+  testLiteralExpression(opExp.right, right);
 }
