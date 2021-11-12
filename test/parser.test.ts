@@ -8,6 +8,7 @@ import {
   PrefixExpression,
   InfixExpression,
   BooleanLiteral,
+  IfExpression,
 } from '../src/ast';
 import {Lexer} from '../src/lexer';
 import {Parser} from '../src/parser';
@@ -269,6 +270,78 @@ test('Parser Should parse Operator Precedence', () => {
     if (program === null) return;
     expect(program.toString()).toBe(test.expected);
   }
+});
+
+test('Parser Should parse If Expression', () => {
+  const input = 'if (x < y) { x }';
+  const l = new Lexer(input);
+  const p = new Parser(l);
+  const program = p.parseProgram();
+  checkParserErrors(p);
+
+  expect(program).not.toBeNull();
+  if (program === null) return;
+  expect(program.statements.length).toBe(1);
+
+  expect(program.statements[0]).toBeInstanceOf(ExpressionStatement);
+  const stmt = program.statements[0] as ExpressionStatement;
+  expect(stmt.expression).toBeInstanceOf(IfExpression);
+  const exp = stmt.expression as IfExpression;
+  expect(exp.condition).not.toBeUndefined();
+  const condition = exp.condition;
+  expect(condition).toBeInstanceOf(InfixExpression);
+  const infix = condition as InfixExpression;
+  testInfixExpression(infix, 'x', '<', 'y');
+
+  const consequence = exp.consequence;
+  expect(consequence.statements.length).toBe(1);
+  expect(consequence.statements[0]).toBeInstanceOf(ExpressionStatement);
+  const consequenceStmt = consequence.statements[0] as ExpressionStatement;
+  expect(consequenceStmt.expression).toBeInstanceOf(Identifier);
+  if (!consequenceStmt.expression) return;
+  testIdentifier(consequenceStmt.expression, 'x');
+});
+
+test('Parser Should parse If-Else Expression', () => {
+  const input = 'if (x < y) { x } else { y }';
+  const l = new Lexer(input);
+  const p = new Parser(l);
+  const program = p.parseProgram();
+  checkParserErrors(p);
+
+  expect(program).not.toBeNull();
+  if (program === null) return;
+  expect(program.statements.length).toBe(1);
+
+  expect(program.statements[0]).toBeInstanceOf(ExpressionStatement);
+  const stmt = program.statements[0] as ExpressionStatement;
+  expect(stmt.expression).toBeInstanceOf(IfExpression);
+  const exp = stmt.expression as IfExpression;
+  expect(exp.condition).not.toBeUndefined();
+  const condition = exp.condition;
+  expect(condition).toBeInstanceOf(InfixExpression);
+  const infix = condition as InfixExpression;
+  testInfixExpression(infix, 'x', '<', 'y');
+
+  const consequence = exp.consequence;
+  expect(consequence.statements.length).toBe(1);
+  expect(consequence.statements[0]).toBeInstanceOf(ExpressionStatement);
+  const consequenceStmt = consequence.statements[0] as ExpressionStatement;
+  expect(consequenceStmt.expression).toBeInstanceOf(Identifier);
+  if (!consequenceStmt.expression) return;
+
+  testIdentifier(consequenceStmt.expression, 'x');
+
+  const alternative = exp.alternative;
+  expect(alternative).not.toBeUndefined();
+  if (!alternative) return;
+  expect(alternative.statements.length).toBe(1);
+  expect(alternative.statements[0]).toBeInstanceOf(ExpressionStatement);
+  const alternativeStmt = alternative.statements[0] as ExpressionStatement;
+  expect(alternativeStmt.expression).toBeInstanceOf(Identifier);
+  if (!alternativeStmt.expression) return;
+
+  testIdentifier(alternativeStmt.expression, 'y');
 });
 
 function testLetStatement(s: Statement, name: string) {

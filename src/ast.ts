@@ -15,6 +15,20 @@ abstract class Expression extends Node {
   abstract expressionNode(): void;
 }
 
+class IllegalExpression implements Expression {
+  constructor(public token: Token) {}
+
+  expressionNode() {}
+
+  tokenLiteral(): string {
+    return this.token.literal;
+  }
+
+  toString(): string {
+    return this.token.literal;
+  }
+}
+
 class Identifier implements Expression {
   constructor(public token: Token, public value: string) {}
 
@@ -94,6 +108,41 @@ class InfixExpression implements Expression {
   }
 
   expressionNode(): void {}
+}
+
+class IfExpression implements Expression {
+  constructor(
+    public token: Token,
+    public condition: Expression,
+    public consequence: BlockStatement,
+    public alternative?: BlockStatement
+  ) {}
+
+  tokenLiteral(): string {
+    return this.token.literal;
+  }
+
+  toString(): string {
+    return `if ${this.condition.toString()} ${this.consequence.toString()} ${
+      this.alternative ? 'else ' : ''
+    }${this.alternative?.toString() ?? ''}`;
+  }
+
+  expressionNode(): void {}
+}
+
+class BlockStatement implements Statement {
+  constructor(public token: Token, public statements: Statement[]) {}
+
+  tokenLiteral(): string {
+    return this.token.literal;
+  }
+
+  toString(): string {
+    return this.statements.map(s => s.toString()).join('');
+  }
+
+  statementNode(): void {}
 }
 
 class LetStatement implements Statement {
@@ -190,9 +239,12 @@ export {
   Statement,
   IntegerLiteral,
   Expression,
+  IllegalExpression,
   BooleanLiteral,
   PrefixExpression,
   InfixExpression,
+  IfExpression,
+  BlockStatement,
   LetStatement,
   ReturnStatement,
   ExpressionStatement,

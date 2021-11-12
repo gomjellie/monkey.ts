@@ -10,6 +10,9 @@ import {
   PrefixExpression,
   InfixExpression,
   BooleanLiteral,
+  IllegalExpression,
+  IfExpression,
+  BlockStatement,
 } from './ast';
 import {Lexer, Token, TokenType} from './lexer';
 
@@ -68,6 +71,7 @@ class Parser {
     this.registerPrefix('TRUE', this.parseBoolean);
     this.registerPrefix('FALSE', this.parseBoolean);
     this.registerPrefix('(', this.parseGroupedExpression);
+    this.registerPrefix('IF', this.parseIfExpression);
     this.registerInfix('+', this.parseInfixExpression);
     this.registerInfix('-', this.parseInfixExpression);
     this.registerInfix('*', this.parseInfixExpression);
@@ -106,6 +110,53 @@ class Parser {
     return exp;
   };
 
+  parseIfExpression = (): Expression => {
+    const token = this.curToken;
+
+    if (!this.expectPeek('(')) {
+      return new IllegalExpression(this.curToken);
+    }
+
+    this.nextToken();
+    const condition = this.parseExpression('LOWEST');
+
+    if (!this.expectPeek(')')) {
+      return new IllegalExpression(this.curToken);
+    }
+
+    if (!this.expectPeek('{')) {
+      return new IllegalExpression(this.curToken);
+    }
+
+    const consequence = this.parseBlockStatement();
+
+    if (this.peekTokenIs('ELSE')) {
+      this.nextToken();
+
+      if (!this.expectPeek('{')) {
+        return new IllegalExpression(this.curToken);
+      }
+      const alternative = this.parseBlockStatement();
+      return new IfExpression(token, condition, consequence, alternative);
+    }
+
+    return new IfExpression(token, condition, consequence);
+  };
+
+  parseBlockStatement = (): BlockStatement => {
+    const token = this.curToken;
+    const statements: Statement[] = [];
+    this.nextToken();
+    while (!this.curTokenIs('}') && !this.curTokenIs('EOF')) {
+      const statement = this.parseStatement();
+      if (statement) {
+        statements.push(statement);
+      }
+      this.nextToken();
+    }
+    return new BlockStatement(token, statements);
+  };
+
   registerPrefix(tokenType: TokenType, fn: PrefixParseFn) {
     this.prefixParseFns[tokenType] = fn;
   }
@@ -137,6 +188,12 @@ class Parser {
     return this.peekToken.type === t;
   }
 
+  /**
+   * expectPeek checks if the next token is of the expected type
+   * side effect: advances the lexer only if it passes check, push error if not
+   * @param t the token type to expect
+   * @returns true if the next token is of type t
+   */
   expectPeek(t: TokenType): boolean {
     if (this.peekToken.type === t) {
       this.nextToken();
@@ -219,7 +276,7 @@ class Parser {
     const prefix = this.prefixParseFns[this.curToken.type];
     if (!prefix) {
       this.noPrefixParseFnError(this.curToken.type);
-      throw new Error('no prefix parse function');
+      return new IllegalExpression(this.curToken);
     }
     let leftExp = prefix();
 
@@ -239,7 +296,7 @@ class Parser {
     return leftExp;
   }
 
-  parseExpressionStatement(): Statement | null {
+  parseExpressionStatement(): Statement {
     const stmt = new ExpressionStatement(this.curToken);
     stmt.expression = this.parseExpression('LOWEST');
 
