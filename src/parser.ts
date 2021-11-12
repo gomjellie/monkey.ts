@@ -67,6 +67,7 @@ class Parser {
     this.registerPrefix('!', this.parsePrefixExpression);
     this.registerPrefix('TRUE', this.parseBoolean);
     this.registerPrefix('FALSE', this.parseBoolean);
+    this.registerPrefix('(', this.parseGroupedExpression);
     this.registerInfix('+', this.parseInfixExpression);
     this.registerInfix('-', this.parseInfixExpression);
     this.registerInfix('*', this.parseInfixExpression);
@@ -93,6 +94,16 @@ class Parser {
 
   parseBoolean = (): Expression => {
     return new BooleanExpression(this.curToken, this.curTokenIs('TRUE'));
+  };
+
+  parseGroupedExpression = (): Expression => {
+    this.nextToken();
+    const exp = this.parseExpression('LOWEST');
+    if (!this.expectPeek(')')) {
+      this.errors.push('expected )');
+      throw new Error('expected )');
+    }
+    return exp;
   };
 
   registerPrefix(tokenType: TokenType, fn: PrefixParseFn) {
@@ -208,7 +219,7 @@ class Parser {
     const prefix = this.prefixParseFns[this.curToken.type];
     if (!prefix) {
       this.noPrefixParseFnError(this.curToken.type);
-      return undefined;
+      throw new Error('no prefix parse function');
     }
     let leftExp = prefix();
 
