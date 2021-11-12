@@ -13,6 +13,7 @@ import {
   IllegalExpression,
   IfExpression,
   BlockStatement,
+  FunctionLiteral,
 } from './ast';
 import {Lexer, Token, TokenType} from './lexer';
 
@@ -72,6 +73,7 @@ class Parser {
     this.registerPrefix('FALSE', this.parseBoolean);
     this.registerPrefix('(', this.parseGroupedExpression);
     this.registerPrefix('IF', this.parseIfExpression);
+    this.registerPrefix('FUNCTION', this.parseFunctionLiteral);
     this.registerInfix('+', this.parseInfixExpression);
     this.registerInfix('-', this.parseInfixExpression);
     this.registerInfix('*', this.parseInfixExpression);
@@ -105,10 +107,48 @@ class Parser {
     const exp = this.parseExpression('LOWEST');
     if (!this.expectPeek(')')) {
       this.errors.push('expected )');
-      throw new Error('expected )');
+      return new IllegalExpression(this.curToken);
     }
     return exp;
   };
+
+  parseFunctionLiteral = (): Expression => {
+    const token = this.curToken;
+    if (!this.expectPeek('(')) {
+      this.errors.push('expected ( after function');
+      return new IllegalExpression(token);
+    }
+
+    const params = this.parseFunctionParameters();
+
+    if (!this.expectPeek('{')) {
+      this.errors.push('expected { after function parameters');
+      return new IllegalExpression(token);
+    }
+
+    const body = this.parseBlockStatement();
+
+    return new FunctionLiteral(token, params, body);
+  };
+
+  parseFunctionParameters(): Identifier[] {
+    const identifiers: Identifier[] = [];
+    if (this.peekTokenIs(')')) {
+      return identifiers;
+    }
+    this.nextToken();
+    identifiers.push(new Identifier(this.curToken, this.curToken.literal));
+    while (this.peekTokenIs(',')) {
+      this.nextToken();
+      this.nextToken();
+      identifiers.push(new Identifier(this.curToken, this.curToken.literal));
+    }
+    if (!this.expectPeek(')')) {
+      this.errors.push('expected ) after parameters');
+      return [];
+    }
+    return identifiers;
+  }
 
   parseIfExpression = (): Expression => {
     const token = this.curToken;

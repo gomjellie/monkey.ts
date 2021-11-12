@@ -71,6 +71,26 @@ class IntegerLiteral implements Expression {
   expressionNode(): void {}
 }
 
+class FunctionLiteral implements Expression {
+  constructor(
+    public token: Token,
+    public parameters: Identifier[],
+    public body: BlockStatement
+  ) {}
+
+  tokenLiteral(): string {
+    return this.token.literal;
+  }
+
+  toString(): string {
+    return `${this.tokenLiteral()} (${this.parameters.join(
+      ', '
+    )}) ${this.body.toString()}`;
+  }
+
+  expressionNode(): void {}
+}
+
 class PrefixExpression implements Expression {
   constructor(
     public token: Token,
@@ -241,6 +261,7 @@ export {
   Expression,
   IllegalExpression,
   BooleanLiteral,
+  FunctionLiteral,
   PrefixExpression,
   InfixExpression,
   IfExpression,
