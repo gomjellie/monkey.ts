@@ -29,7 +29,7 @@ class Identifier implements Expression {
   expressionNode(): void {}
 }
 
-class BooleanExpression implements Expression {
+class BooleanLiteral implements Expression {
   constructor(public token: Token, public value: boolean) {}
 
   tokenLiteral(): string {
@@ -190,7 +190,7 @@ export {
   Statement,
   IntegerLiteral,
   Expression,
-  BooleanExpression,
+  BooleanLiteral,
   PrefixExpression,
   InfixExpression,
   LetStatement,

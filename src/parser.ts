@@ -9,7 +9,7 @@ import {
   IntegerLiteral,
   PrefixExpression,
   InfixExpression,
-  BooleanExpression,
+  BooleanLiteral,
 } from './ast';
 import {Lexer, Token, TokenType} from './lexer';
 
@@ -93,7 +93,7 @@ class Parser {
   };
 
   parseBoolean = (): Expression => {
-    return new BooleanExpression(this.curToken, this.curTokenIs('TRUE'));
+    return new BooleanLiteral(this.curToken, this.curTokenIs('TRUE'));
   };
 
   parseGroupedExpression = (): Expression => {

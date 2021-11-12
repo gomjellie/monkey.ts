@@ -7,7 +7,7 @@ import {
   Expression,
   PrefixExpression,
   InfixExpression,
-  BooleanExpression,
+  BooleanLiteral,
 } from '../src/ast';
 import {Lexer} from '../src/lexer';
 import {Parser} from '../src/parser';
@@ -105,8 +105,8 @@ test('Parser Should parse Boolean Literal', () => {
     const stmt = program.statements[0] as ExpressionStatement;
     expect(stmt.expression).not.toBeUndefined();
     if (stmt.expression === undefined) return;
-    expect(stmt.expression).toBeInstanceOf(BooleanExpression);
-    testBooleanLiteral(stmt.expression as BooleanExpression, test.expected);
+    expect(stmt.expression).toBeInstanceOf(BooleanLiteral);
+    testBooleanLiteral(stmt.expression as BooleanLiteral, test.expected);
   }
 });
 
@@ -315,11 +315,11 @@ function testLiteralExpression(
   } else if (typeof expected === 'string') {
     testIdentifier(exp as Identifier, expected);
   } else if (typeof expected === 'boolean') {
-    testBooleanLiteral(exp as BooleanExpression, expected);
+    testBooleanLiteral(exp as BooleanLiteral, expected);
   }
 }
 
-function testBooleanLiteral(bl: BooleanExpression, value: boolean) {
+function testBooleanLiteral(bl: BooleanLiteral, value: boolean) {
   expect(bl).not.toBeNull();
   if (bl === null) return;
   expect(bl.value).toBe(value);
