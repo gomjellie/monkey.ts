@@ -14,6 +14,7 @@ import {
   IfExpression,
   BlockStatement,
   FunctionLiteral,
+  CallExpression,
 } from './ast';
 import {Lexer, Token, TokenType} from './lexer';
 
@@ -30,7 +31,7 @@ type Precedence =
 
 /** return true if a < b */
 function Precedence_cmp(a: Precedence, b: Precedence): boolean {
-  const precedenceMap: {[key: string]: number} = {
+  const precedenceMap: {[key in Precedence]: number} = {
     LOWEST: 0,
     EQUALS: 1,
     LESSGREATER: 2,
@@ -51,6 +52,7 @@ const PRECEDENCES: {[key in TokenType]?: Precedence} = {
   '-': 'SUM',
   '*': 'PRODUCT',
   '/': 'PRODUCT',
+  '(': 'CALL',
 };
 
 class Parser {
@@ -74,6 +76,7 @@ class Parser {
     this.registerPrefix('(', this.parseGroupedExpression);
     this.registerPrefix('IF', this.parseIfExpression);
     this.registerPrefix('FUNCTION', this.parseFunctionLiteral);
+    this.registerInfix('(', this.parseCallExpression);
     this.registerInfix('+', this.parseInfixExpression);
     this.registerInfix('-', this.parseInfixExpression);
     this.registerInfix('*', this.parseInfixExpression);
@@ -106,7 +109,6 @@ class Parser {
     this.nextToken();
     const exp = this.parseExpression('LOWEST');
     if (!this.expectPeek(')')) {
-      this.errors.push('expected )');
       return new IllegalExpression(this.curToken);
     }
     return exp;
@@ -147,6 +149,31 @@ class Parser {
     }
     return identifiers;
   }
+
+  parseCallExpression = (func: Expression): Expression => {
+    const token = this.curToken;
+    const args = this.parseCallArguments();
+    return new CallExpression(token, func, args);
+  };
+
+  parseCallArguments = (): Expression[] => {
+    const args: Expression[] = [];
+    if (this.peekTokenIs(')')) {
+      this.nextToken();
+      return args;
+    }
+    this.nextToken();
+    args.push(this.parseExpression('LOWEST'));
+    while (this.peekTokenIs(',')) {
+      this.nextToken();
+      this.nextToken();
+      args.push(this.parseExpression('LOWEST'));
+    }
+    if (!this.expectPeek(')')) {
+      return [];
+    }
+    return args;
+  };
 
   parseIfExpression = (): Expression => {
     const token = this.curToken;

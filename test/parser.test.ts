@@ -10,6 +10,7 @@ import {
   BooleanLiteral,
   IfExpression,
   FunctionLiteral,
+  CallExpression,
 } from '../src/ast';
 import {Lexer} from '../src/lexer';
 import {Parser} from '../src/parser';
@@ -258,6 +259,18 @@ test('Parser Should parse Operator Precedence', () => {
       input: '!(true == true)',
       expected: '(!(true == true))',
     },
+    {
+      input: 'a + add(b * c) + d',
+      expected: '((a + add((b * c))) + d)',
+    },
+    {
+      input: 'add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))',
+      expected: 'add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))',
+    },
+    {
+      input: 'add(a + b + c * d / f + g)',
+      expected: 'add((((a + b) + ((c * d) / f)) + g))',
+    },
   ];
 
   for (let i = 0; i < tests.length; i++) {
@@ -398,6 +411,31 @@ test('Function Parameter Parsing', () => {
       testLiteralExpression(fn.parameters[i], test.expectedParams[i]);
     }
   }
+});
+
+test('Call Expression Parsing', () => {
+  const input = 'add(1, 2 * 3, 4 + 5);';
+  const l = new Lexer(input);
+  const p = new Parser(l);
+  const program = p.parseProgram();
+  checkParserErrors(p);
+
+  expect(program).not.toBeNull();
+  if (program === null) return;
+  expect(program.statements.length).toBe(1);
+
+  expect(program.statements[0]).toBeInstanceOf(ExpressionStatement);
+  const stmt = program.statements[0] as ExpressionStatement;
+  expect(stmt.expression).toBeInstanceOf(CallExpression);
+  const exp = stmt.expression as CallExpression;
+  expect(exp.func).not.toBeUndefined();
+  const func = exp.func;
+  expect(func).toBeInstanceOf(Identifier);
+  testIdentifier(func, 'add');
+  expect(exp.args.length).toBe(3);
+  testLiteralExpression(exp.args[0], 1);
+  testInfixExpression(exp.args[1], 2, '*', 3);
+  testInfixExpression(exp.args[2], 4, '+', 5);
 });
 
 function testLetStatement(s: Statement, name: string) {

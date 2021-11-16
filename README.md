@@ -28,6 +28,7 @@ expression:
   <literal> | <identifier> |
   <infix_expression> |
   <prefix_expression> |
+  <call_expression>
 
 prefix_expression: <prefix_operator><expression>
 
@@ -35,7 +36,9 @@ prefix_operator: + | - | !
 
 infix_expression: <expression> <infix_operator> <expression>
 
-statement: <expression>; <if_statement> | <let_statement>
+call_expression: <expression> (<comma seperated expressions>)
+
+statement: <expression>; | <if_statement> | <let_statement>
 
 if_statement:
   if (<condition>) <consequence> else <alternative> |

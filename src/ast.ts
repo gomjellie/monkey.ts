@@ -151,6 +151,24 @@ class IfExpression implements Expression {
   expressionNode(): void {}
 }
 
+class CallExpression implements Expression {
+  constructor(
+    public token: Token, // '('
+    public func: Expression, // identifier or function literal
+    public args: Expression[]
+  ) {}
+
+  tokenLiteral(): string {
+    return this.token.literal;
+  }
+
+  toString(): string {
+    return `${this.func.toString()}(${this.args.join(', ')})`;
+  }
+
+  expressionNode(): void {}
+}
+
 class BlockStatement implements Statement {
   constructor(public token: Token, public statements: Statement[]) {}
 
@@ -265,6 +283,7 @@ export {
   PrefixExpression,
   InfixExpression,
   IfExpression,
+  CallExpression,
   BlockStatement,
   LetStatement,
   ReturnStatement,
