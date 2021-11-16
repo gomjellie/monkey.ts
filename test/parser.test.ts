@@ -371,6 +371,14 @@ test('Parser Should parse FunctionLiteral', () => {
   testInfixExpression(infix, 'x', '+', 'y');
 });
 
+test('Function Parameter Parsing', () => {
+  const tests: {input: string; expectedParams: string[]}[] = [
+    {input: 'fn() {};', expectedParams: []},
+    {input: 'fn(x) {};', expectedParams: ['x']},
+    {input: 'fn(x, y, z) {};', expectedParams: ['x', 'y', 'z']},
+  ];
+});
+
 function testLetStatement(s: Statement, name: string) {
   expect(s).not.toBeNull();
   if (s === null) return;
