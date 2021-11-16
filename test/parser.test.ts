@@ -377,6 +377,27 @@ test('Function Parameter Parsing', () => {
     {input: 'fn(x) {};', expectedParams: ['x']},
     {input: 'fn(x, y, z) {};', expectedParams: ['x', 'y', 'z']},
   ];
+
+  for (let i = 0; i < tests.length; i++) {
+    const test = tests[i];
+    const l = new Lexer(test.input);
+    const p = new Parser(l);
+    const program = p.parseProgram();
+    checkParserErrors(p);
+
+    expect(program).not.toBeNull();
+    if (program === null) return;
+    expect(program.statements.length).toBe(1);
+
+    expect(program.statements[0]).toBeInstanceOf(ExpressionStatement);
+    const stmt = program.statements[0] as ExpressionStatement;
+    expect(stmt.expression).toBeInstanceOf(FunctionLiteral);
+    const fn = stmt.expression as FunctionLiteral;
+    expect(fn.parameters.length).toBe(test.expectedParams.length);
+    for (let i = 0; i < fn.parameters.length; i++) {
+      testLiteralExpression(fn.parameters[i], test.expectedParams[i]);
+    }
+  }
 });
 
 function testLetStatement(s: Statement, name: string) {

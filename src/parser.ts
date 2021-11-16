@@ -115,14 +115,12 @@ class Parser {
   parseFunctionLiteral = (): Expression => {
     const token = this.curToken;
     if (!this.expectPeek('(')) {
-      this.errors.push('expected ( after function');
       return new IllegalExpression(token);
     }
 
     const params = this.parseFunctionParameters();
 
     if (!this.expectPeek('{')) {
-      this.errors.push('expected { after function parameters');
       return new IllegalExpression(token);
     }
 
@@ -134,6 +132,7 @@ class Parser {
   parseFunctionParameters(): Identifier[] {
     const identifiers: Identifier[] = [];
     if (this.peekTokenIs(')')) {
+      this.nextToken();
       return identifiers;
     }
     this.nextToken();
@@ -144,7 +143,6 @@ class Parser {
       identifiers.push(new Identifier(this.curToken, this.curToken.literal));
     }
     if (!this.expectPeek(')')) {
-      this.errors.push('expected ) after parameters');
       return [];
     }
     return identifiers;
