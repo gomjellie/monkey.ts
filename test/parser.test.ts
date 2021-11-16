@@ -16,31 +16,45 @@ import {Lexer} from '../src/lexer';
 import {Parser} from '../src/parser';
 
 test('Parser Should parse let statements', () => {
-  const input = `
-let x = 5;
-let y = 10;
-let foobar = 838383;
-  `;
-
-  const l = new Lexer(input);
-  const p = new Parser(l);
-
-  const program = p.parseProgram();
-  checkParserErrors(p);
-  expect(program).not.toBeNull();
-  if (program === null) return;
-  expect(program.statements.length).toBe(3);
-
-  const tests: {expectedIdentifier: string}[] = [
-    {expectedIdentifier: 'x'},
-    {expectedIdentifier: 'y'},
-    {expectedIdentifier: 'foobar'},
+  const tests: {
+    input: string;
+    expectedIdentifier: string;
+    expectedValue: string | number | boolean;
+  }[] = [
+    {
+      input: 'let x = 5;',
+      expectedIdentifier: 'x',
+      expectedValue: 5,
+    },
+    {
+      input: 'let y = true;',
+      expectedIdentifier: 'y',
+      expectedValue: true,
+    },
+    {
+      input: 'let foobar = y;',
+      expectedIdentifier: 'foobar',
+      expectedValue: 'y',
+    },
   ];
 
   for (let i = 0; i < tests.length; i++) {
-    const stmt = program.statements[i];
-    const name = tests[i].expectedIdentifier;
-    testLetStatement(stmt, name);
+    const t = tests[i];
+    const l = new Lexer(t.input);
+    const p = new Parser(l);
+    const program = p.parseProgram();
+    checkParserErrors(p);
+
+    expect(program).not.toBeNull();
+    if (program === null) return;
+    expect(program.statements.length).toBe(1);
+
+    const stmt = program.statements[0] as LetStatement;
+    testLetStatement(stmt, t.expectedIdentifier);
+    const val = stmt.value;
+    expect(val).not.toBeUndefined();
+    if (!val) return;
+    testLiteralExpression(val, t.expectedValue);
   }
 });
 

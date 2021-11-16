@@ -287,22 +287,28 @@ class Parser {
       return null;
     }
 
-    while (this.curToken.type !== ';') {
+    this.nextToken();
+
+    const value = this.parseExpression('LOWEST');
+
+    if (this.peekTokenIs(';')) {
       this.nextToken();
     }
 
-    return new LetStatement(token, name);
+    return new LetStatement(token, name, value);
   }
 
-  parseReturnStatement(): Statement | null {
+  parseReturnStatement(): Statement {
     const token = this.curToken;
     this.nextToken();
 
-    while (this.curToken.type !== ';') {
+    const returnValue = this.parseExpression('LOWEST');
+
+    if (this.peekTokenIs(';')) {
       this.nextToken();
     }
 
-    return new ReturnStatement(token); // TODO: 2번째 인자 returnValue 넘긴 identifier 나중에 변경해야함.
+    return new ReturnStatement(token, returnValue);
   }
 
   parsePrefixExpression = (): Expression => {

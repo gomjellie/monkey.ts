@@ -186,9 +186,9 @@ class BlockStatement implements Statement {
 class LetStatement implements Statement {
   token: Token;
   name: Identifier;
-  value?: Expression;
+  value: Expression;
 
-  constructor(token: Token, name: Identifier, value?: Expression) {
+  constructor(token: Token, name: Identifier, value: Expression) {
     this.token = token;
     this.name = name;
     this.value = value;
@@ -201,17 +201,15 @@ class LetStatement implements Statement {
   }
 
   toString() {
-    return `${this.tokenLiteral()} ${this.name.toString()} = ${
-      this.value?.toString() ?? ''
-    };`;
+    return `${this.tokenLiteral()} ${this.name.toString()} = ${this.value.toString()};`;
   }
 }
 
 class ReturnStatement implements Statement {
   token: Token;
-  returnValue?: Expression;
+  returnValue: Expression;
 
-  constructor(token: Token, returnValue?: Expression) {
+  constructor(token: Token, returnValue: Expression) {
     this.token = token;
     this.returnValue = returnValue;
   }
@@ -223,7 +221,7 @@ class ReturnStatement implements Statement {
   }
 
   toString(): string {
-    return `${this.tokenLiteral()} ${this.returnValue?.toString() ?? ''};`;
+    return `${this.tokenLiteral()} ${this.returnValue.toString()};`;
   }
 }
 
