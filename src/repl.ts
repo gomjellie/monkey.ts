@@ -1,4 +1,3 @@
-import {STATUS_CODES} from 'http';
 import {Lexer} from './lexer';
 import {Parser} from './parser';
 
