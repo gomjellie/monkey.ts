@@ -33,4 +33,14 @@ class MonkeyBoolean extends MonkeyObject {
   }
 }
 
-export {MonkeyInteger, MonkeyBoolean};
+class MonkeyNull extends MonkeyObject {
+  type(): ObjectType {
+    return 'NULL';
+  }
+
+  inspect(): string {
+    return 'null';
+  }
+}
+
+export {MonkeyInteger, MonkeyBoolean, MonkeyNull};
