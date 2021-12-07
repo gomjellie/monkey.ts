@@ -97,6 +97,12 @@ function evalInfixExpression(
   if (left instanceof MonkeyInteger && right instanceof MonkeyInteger) {
     return evalIntegerInfixExpression(operator, left, right);
   }
+  if (operator === '==') {
+    return nativeBooleanToMonkeyBoolean(left === right);
+  }
+  if (operator === '!=') {
+    return nativeBooleanToMonkeyBoolean(left !== right);
+  }
   return NULL;
 }
 
