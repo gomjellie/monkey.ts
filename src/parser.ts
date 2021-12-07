@@ -314,11 +314,12 @@ class Parser {
   parsePrefixExpression = (): Expression => {
     const expression = new PrefixExpression(
       this.curToken,
-      this.curToken.literal
+      this.curToken.literal,
+      (() => {
+        this.nextToken();
+        return this.parseExpression('PREFIX');
+      })()
     );
-    this.nextToken();
-
-    expression.right = this.parseExpression('PREFIX');
 
     return expression;
   };
@@ -335,11 +336,13 @@ class Parser {
     const expression = new InfixExpression(
       this.curToken,
       left,
-      this.curToken.literal
+      this.curToken.literal,
+      (() => {
+        const precedence = this.curPrecedence();
+        this.nextToken();
+        return this.parseExpression(precedence);
+      })()
     );
-    const precedence = this.curPrecedence();
-    this.nextToken();
-    expression.right = this.parseExpression(precedence);
     return expression;
   };
 
@@ -368,8 +371,10 @@ class Parser {
   }
 
   parseExpressionStatement(): Statement {
-    const stmt = new ExpressionStatement(this.curToken);
-    stmt.expression = this.parseExpression('LOWEST');
+    const stmt = new ExpressionStatement(
+      this.curToken,
+      this.parseExpression('LOWEST')
+    );
 
     if (this.peekTokenIs(';')) {
       this.nextToken();
@@ -389,7 +394,7 @@ class Parser {
     }
   }
 
-  parseProgram(): Program | null {
+  parseProgram(): Program {
     const program = new Program([]);
     while (this.curToken.type !== 'EOF') {
       const stmt = this.parseStatement();

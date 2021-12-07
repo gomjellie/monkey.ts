@@ -95,7 +95,7 @@ class PrefixExpression implements Expression {
   constructor(
     public token: Token,
     public operator: string,
-    public right?: Expression
+    public right: Expression
   ) {}
 
   tokenLiteral(): string {
@@ -103,7 +103,7 @@ class PrefixExpression implements Expression {
   }
 
   toString(): string {
-    return `(${this.operator}${this.right?.toString() ?? ''})`;
+    return `(${this.operator}${this.right.toString()})`;
   }
 
   expressionNode(): void {}
@@ -114,7 +114,7 @@ class InfixExpression implements Expression {
     public token: Token,
     public left: Expression,
     public operator: string,
-    public right?: Expression
+    public right: Expression
   ) {}
 
   tokenLiteral(): string {
@@ -122,9 +122,9 @@ class InfixExpression implements Expression {
   }
 
   toString(): string {
-    return `(${this.left.toString()} ${this.operator} ${
-      this.right?.toString() ?? ''
-    })`;
+    return `(${this.left.toString()} ${
+      this.operator
+    } ${this.right.toString()})`;
   }
 
   expressionNode(): void {}
@@ -227,9 +227,9 @@ class ReturnStatement implements Statement {
 
 class ExpressionStatement implements Statement {
   token: Token;
-  expression?: Expression;
+  expression: Expression;
 
-  constructor(token: Token, expression?: Expression) {
+  constructor(token: Token, expression: Expression) {
     this.token = token;
     this.expression = expression;
   }

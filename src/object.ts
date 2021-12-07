@@ -43,4 +43,4 @@ class MonkeyNull extends MonkeyObject {
   }
 }
 
-export {MonkeyInteger, MonkeyBoolean, MonkeyNull};
+export {MonkeyObject, MonkeyInteger, MonkeyBoolean, MonkeyNull};

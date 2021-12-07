@@ -1,3 +1,4 @@
+import {monkeyEval} from './evaluator';
 import {Lexer} from './lexer';
 import {Parser} from './parser';
 
@@ -34,8 +35,11 @@ const init = (stdin: NodeJS.ReadStream, stdout: NodeJS.WriteStream) => {
       printParseErrors(stdout, p.errors);
     }
 
-    stdout.write(program.toString());
-    stdout.write('\n');
+    const evaluated = monkeyEval(program);
+    if (evaluated !== null) {
+      stdout.write(`${evaluated.inspect()}\n`);
+      stdout.write('\n');
+    }
     stdout.write(PROMPT);
   });
 };
