@@ -9,8 +9,15 @@ import {
   InfixExpression,
   BlockStatement,
   IfExpression,
+  ReturnStatement,
 } from './ast';
-import {MonkeyBoolean, MonkeyInteger, MonkeyNull, MonkeyObject} from './object';
+import {
+  MonkeyBoolean,
+  MonkeyInteger,
+  MonkeyNull,
+  MonkeyObject,
+  MonkeyReturnValue,
+} from './object';
 
 export const TRUE = new MonkeyBoolean(true);
 export const FALSE = new MonkeyBoolean(false);
@@ -18,7 +25,7 @@ export const NULL = new MonkeyNull();
 
 function monkeyEval(node: Node): MonkeyObject {
   if (node instanceof Program) {
-    return evalStatements(node.statements);
+    return evalProgram(node.statements);
   }
   if (node instanceof ExpressionStatement) {
     return monkeyEval(node.expression);
@@ -33,10 +40,14 @@ function monkeyEval(node: Node): MonkeyObject {
     return evalInfixExpression(node.operator, left, right);
   }
   if (node instanceof BlockStatement) {
-    return evalStatements(node.statements);
+    return evalBlockStatement(node.statements);
   }
   if (node instanceof IfExpression) {
     return evalIfExpression(node);
+  }
+  if (node instanceof ReturnStatement) {
+    const value = monkeyEval(node.returnValue);
+    return new MonkeyReturnValue(value);
   }
   if (node instanceof IntegerLiteral) {
     return new MonkeyInteger(node.value);
@@ -47,10 +58,26 @@ function monkeyEval(node: Node): MonkeyObject {
   return NULL;
 }
 
-function evalStatements(statements: Statement[]): MonkeyObject {
+function evalProgram(statements: Statement[]): MonkeyObject {
   let result: MonkeyObject = NULL;
   for (const statement of statements) {
     result = monkeyEval(statement);
+
+    if (result instanceof MonkeyReturnValue) {
+      return result.value;
+    }
+  }
+  return result;
+}
+
+function evalBlockStatement(statements: Statement[]): MonkeyObject {
+  let result: MonkeyObject = NULL;
+  for (const statement of statements) {
+    result = monkeyEval(statement);
+
+    if (result instanceof MonkeyReturnValue) {
+      return result; // result.value로 unwrap하지 않고 MonkeyReturnValue를 반환한다.
+    }
   }
   return result;
 }
