@@ -7,12 +7,14 @@ import {
   BooleanLiteral,
   PrefixExpression,
   InfixExpression,
+  BlockStatement,
+  IfExpression,
 } from './ast';
 import {MonkeyBoolean, MonkeyInteger, MonkeyNull, MonkeyObject} from './object';
 
-const TRUE = new MonkeyBoolean(true);
-const FALSE = new MonkeyBoolean(false);
-const NULL = new MonkeyNull();
+export const TRUE = new MonkeyBoolean(true);
+export const FALSE = new MonkeyBoolean(false);
+export const NULL = new MonkeyNull();
 
 function monkeyEval(node: Node): MonkeyObject {
   if (node instanceof Program) {
@@ -30,6 +32,12 @@ function monkeyEval(node: Node): MonkeyObject {
     const right = monkeyEval(node.right);
     return evalInfixExpression(node.operator, left, right);
   }
+  if (node instanceof BlockStatement) {
+    return evalStatements(node.statements);
+  }
+  if (node instanceof IfExpression) {
+    return evalIfExpression(node);
+  }
   if (node instanceof IntegerLiteral) {
     return new MonkeyInteger(node.value);
   }
@@ -45,6 +53,16 @@ function evalStatements(statements: Statement[]): MonkeyObject {
     result = monkeyEval(statement);
   }
   return result;
+}
+
+function evalIfExpression(node: IfExpression): MonkeyObject {
+  const condition = monkeyEval(node.condition);
+  if (isTruthy(condition)) {
+    return monkeyEval(node.consequence);
+  } else if (node.alternative) {
+    return monkeyEval(node.alternative);
+  }
+  return NULL;
 }
 
 function nativeBooleanToMonkeyBoolean(input: boolean): MonkeyBoolean {
@@ -131,6 +149,21 @@ function evalIntegerInfixExpression(
     default:
       return NULL;
   }
+}
+
+/**
+ * false, null이 아니면 참이다.
+ * @param obj
+ * @returns boolean
+ */
+function isTruthy(obj: MonkeyObject): boolean {
+  if (obj === NULL) {
+    return false;
+  }
+  if (obj === FALSE) {
+    return false;
+  }
+  return true;
 }
 
 export {monkeyEval};

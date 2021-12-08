@@ -1,6 +1,11 @@
-import {monkeyEval} from '../src/evaluator';
+import {monkeyEval, NULL} from '../src/evaluator';
 import {Lexer} from '../src/lexer';
-import {MonkeyBoolean, MonkeyInteger, MonkeyObject} from '../src/object';
+import {
+  MonkeyBoolean,
+  MonkeyInteger,
+  MonkeyNull,
+  MonkeyObject,
+} from '../src/object';
 import {Parser} from '../src/parser';
 
 test('EvalIntegerExpression', () => {
@@ -199,7 +204,49 @@ test('BangOperator', () => {
   });
 });
 
-function testEval(input: string): MonkeyObject | null {
+test('IfElseExpression', () => {
+  const tests = [
+    {
+      input: 'if (true) { 10 }',
+      expected: 10,
+    },
+    {
+      input: 'if (false) { 10 }',
+      expected: NULL,
+    },
+    {
+      input: 'if (1) { 10 }',
+      expected: 10,
+    },
+    {
+      input: 'if (1 < 2) { 10 }',
+      expected: 10,
+    },
+    {
+      input: 'if (1 > 2) { 10 }',
+      expected: NULL,
+    },
+    {
+      input: 'if (1 > 2) { 10 } else { 20 }',
+      expected: 20,
+    },
+    {
+      input: 'if (1 < 2) { 10 } else { 20 }',
+      expected: 10,
+    },
+  ];
+
+  tests.forEach(test => {
+    const evaluated = testEval(test.input);
+    if (typeof test.expected === 'number') {
+      testIntegerObject(evaluated, test.expected);
+    } else {
+      testNullObject(evaluated);
+    }
+  });
+});
+
+function testEval(input: string): MonkeyObject {
   const l = new Lexer(input);
   const p = new Parser(l);
   const program = p.parseProgram();
@@ -216,4 +263,9 @@ function testBooleanObject(obj: MonkeyObject, expected: boolean): void {
   expect(obj).toBeInstanceOf(MonkeyObject);
   if (!(obj instanceof MonkeyBoolean)) return;
   expect(obj.value).toBe(expected);
+}
+
+function testNullObject(obj: MonkeyObject): void {
+  expect(obj).toBeInstanceOf(MonkeyNull);
+  if (!(obj instanceof MonkeyNull)) return;
 }
