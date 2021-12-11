@@ -10,7 +10,10 @@ import {
   BlockStatement,
   IfExpression,
   ReturnStatement,
+  LetStatement,
+  Identifier,
 } from './ast';
+import {Environment} from './environment';
 import {
   MonkeyBoolean,
   MonkeyError,
@@ -24,43 +27,53 @@ export const TRUE = new MonkeyBoolean(true);
 export const FALSE = new MonkeyBoolean(false);
 export const NULL = new MonkeyNull();
 
-function monkeyEval(node: Node): MonkeyObject {
+function monkeyEval(node: Node, env: Environment): MonkeyObject {
   if (node instanceof Program) {
-    return evalProgram(node.statements);
+    return evalProgram(node.statements, env);
   }
   if (node instanceof ExpressionStatement) {
-    return monkeyEval(node.expression);
+    return monkeyEval(node.expression, env);
   }
   if (node instanceof PrefixExpression) {
-    const right = monkeyEval(node.right);
+    const right = monkeyEval(node.right, env);
     if (isMonkeyError(right)) {
       return right;
     }
     return evalPrefixExpression(node.operator, right);
   }
   if (node instanceof InfixExpression) {
-    const left = monkeyEval(node.left);
+    const left = monkeyEval(node.left, env);
     if (isMonkeyError(left)) {
       return left;
     }
-    const right = monkeyEval(node.right);
+    const right = monkeyEval(node.right, env);
     if (isMonkeyError(right)) {
       return right;
     }
     return evalInfixExpression(node.operator, left, right);
   }
   if (node instanceof BlockStatement) {
-    return evalBlockStatement(node.statements);
+    return evalBlockStatement(node.statements, env);
   }
   if (node instanceof IfExpression) {
-    return evalIfExpression(node);
+    return evalIfExpression(node, env);
   }
   if (node instanceof ReturnStatement) {
-    const value = monkeyEval(node.returnValue);
+    const value = monkeyEval(node.returnValue, env);
     if (isMonkeyError(value)) {
       return value;
     }
     return new MonkeyReturnValue(value);
+  }
+  if (node instanceof LetStatement) {
+    const value = monkeyEval(node.value, env);
+    if (isMonkeyError(value)) {
+      return value;
+    }
+    env.set(node.name.value, value);
+  }
+  if (node instanceof Identifier) {
+    return evalIdentifier(node, env);
   }
   if (node instanceof IntegerLiteral) {
     return new MonkeyInteger(node.value);
@@ -71,10 +84,18 @@ function monkeyEval(node: Node): MonkeyObject {
   return NULL;
 }
 
-function evalProgram(statements: Statement[]): MonkeyObject {
+function evalIdentifier(node: Identifier, env: Environment): MonkeyObject {
+  const val = env.get(node.value);
+  if (val) {
+    return val;
+  }
+  return new MonkeyError(`identifier not found: ${node.value}`);
+}
+
+function evalProgram(statements: Statement[], env: Environment): MonkeyObject {
   let result: MonkeyObject = NULL;
   for (const statement of statements) {
-    result = monkeyEval(statement);
+    result = monkeyEval(statement, env);
 
     if (result instanceof MonkeyReturnValue) {
       return result.value;
@@ -86,10 +107,13 @@ function evalProgram(statements: Statement[]): MonkeyObject {
   return result;
 }
 
-function evalBlockStatement(statements: Statement[]): MonkeyObject {
+function evalBlockStatement(
+  statements: Statement[],
+  env: Environment
+): MonkeyObject {
   let result: MonkeyObject = NULL;
   for (const statement of statements) {
-    result = monkeyEval(statement);
+    result = monkeyEval(statement, env);
 
     if (result instanceof MonkeyReturnValue || result instanceof MonkeyError) {
       return result; // result.value로 unwrap하지 않고 MonkeyReturnValue를 반환한다.
@@ -98,15 +122,15 @@ function evalBlockStatement(statements: Statement[]): MonkeyObject {
   return result;
 }
 
-function evalIfExpression(node: IfExpression): MonkeyObject {
-  const condition = monkeyEval(node.condition);
+function evalIfExpression(node: IfExpression, env: Environment): MonkeyObject {
+  const condition = monkeyEval(node.condition, env);
   if (isMonkeyError(condition)) {
     return condition;
   }
   if (isTruthy(condition)) {
-    return monkeyEval(node.consequence);
+    return monkeyEval(node.consequence, env);
   } else if (node.alternative) {
-    return monkeyEval(node.alternative);
+    return monkeyEval(node.alternative, env);
   }
   return NULL;
 }

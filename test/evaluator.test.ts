@@ -7,6 +7,7 @@ import {
   MonkeyNull,
   MonkeyObject,
 } from '../src/object';
+import {Environment} from '../src/environment';
 import {Parser} from '../src/parser';
 
 test('EvalIntegerExpression', () => {
@@ -330,10 +331,10 @@ test('ErrorHandling', () => {
       input: 'if (10 > 1) { if (10 > 1) { return true + false; } return 1; }',
       expected: 'unknown operator: BOOLEAN + BOOLEAN',
     },
-    // {
-    //   input: 'foobar',
-    //   expected: 'identifier not found: foobar',
-    // },
+    {
+      input: 'foobar',
+      expected: 'identifier not found: foobar',
+    },
     // {
     //   input: '"Hello" - "World"',
     //   expected: 'unknown operator: STRING - STRING',
@@ -350,11 +351,38 @@ test('ErrorHandling', () => {
   });
 });
 
+test('LetStatements', () => {
+  const tests = [
+    {
+      input: 'let a = 5; a;',
+      expected: 5,
+    },
+    {
+      input: 'let a = 5 * 5; a;',
+      expected: 25,
+    },
+    {
+      input: 'let a = 5; let b = a; b;',
+      expected: 5,
+    },
+    {
+      input: 'let a = 5; let b = a; let c = a + b + 5; c;',
+      expected: 15,
+    },
+  ];
+
+  tests.forEach(test => {
+    const evaluated = testEval(test.input);
+    testIntegerObject(evaluated, test.expected);
+  });
+});
+
 function testEval(input: string): MonkeyObject {
   const l = new Lexer(input);
   const p = new Parser(l);
   const program = p.parseProgram();
-  return monkeyEval(program);
+  const env = new Environment();
+  return monkeyEval(program, env);
 }
 
 function testIntegerObject(obj: MonkeyObject, expected: number): void {

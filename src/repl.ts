@@ -1,5 +1,7 @@
+import {Environment} from './environment';
 import {monkeyEval} from './evaluator';
 import {Lexer} from './lexer';
+import {MonkeyNull} from './object';
 import {Parser} from './parser';
 
 const PROMPT = '> ';
@@ -20,6 +22,7 @@ const MONKEY_FACE = String.raw`
 const init = (stdin: NodeJS.ReadStream, stdout: NodeJS.WriteStream) => {
   stdout.write(PROMPT);
   stdin.setEncoding('utf8');
+  const env = new Environment();
   stdin.on('data', (data: string) => {
     const line = data.trim();
     const l = new Lexer(line);
@@ -35,10 +38,9 @@ const init = (stdin: NodeJS.ReadStream, stdout: NodeJS.WriteStream) => {
       printParseErrors(stdout, p.errors);
     }
 
-    const evaluated = monkeyEval(program);
-    if (evaluated !== null) {
+    const evaluated = monkeyEval(program, env);
+    if (!(evaluated instanceof MonkeyNull)) {
       stdout.write(`${evaluated.inspect()}\n`);
-      stdout.write('\n');
     }
     stdout.write(PROMPT);
   });
