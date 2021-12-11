@@ -2,6 +2,7 @@ import {monkeyEval, NULL} from '../src/evaluator';
 import {Lexer} from '../src/lexer';
 import {
   MonkeyBoolean,
+  MonkeyError,
   MonkeyInteger,
   MonkeyNull,
   MonkeyObject,
@@ -248,38 +249,38 @@ test('IfElseExpression', () => {
 
 test('ReturnStatements', () => {
   const tests = [
-    // {
-    //   input: 'return 10;',
-    //   expected: 10,
-    // },
-    // {
-    //   input: 'return 10; 9;',
-    //   expected: 10,
-    // },
-    // {
-    //   input: 'return 2 * 5; 9;',
-    //   expected: 10,
-    // },
-    // {
-    //   input: '9; return 2 * 5; 9;',
-    //   expected: 10,
-    // },
-    // {
-    //   input: 'if (10 > 1) { return 10; }',
-    //   expected: 10,
-    // },
-    // {
-    //   input: 'if (1 < 10) { return 10; }',
-    //   expected: 10,
-    // },
-    // {
-    //   input: 'if (1 < 10) { return 10; } else { return 20; }',
-    //   expected: 10,
-    // },
-    // {
-    //   input: 'if (1 > 10) { return 10; } else { return 20; }',
-    //   expected: 20,
-    // },
+    {
+      input: 'return 10;',
+      expected: 10,
+    },
+    {
+      input: 'return 10; 9;',
+      expected: 10,
+    },
+    {
+      input: 'return 2 * 5; 9;',
+      expected: 10,
+    },
+    {
+      input: '9; return 2 * 5; 9;',
+      expected: 10,
+    },
+    {
+      input: 'if (10 > 1) { return 10; }',
+      expected: 10,
+    },
+    {
+      input: 'if (1 < 10) { return 10; }',
+      expected: 10,
+    },
+    {
+      input: 'if (1 < 10) { return 10; } else { return 20; }',
+      expected: 10,
+    },
+    {
+      input: 'if (1 > 10) { return 10; } else { return 20; }',
+      expected: 20,
+    },
     {
       input: `
         if (10 > 1) {
@@ -296,6 +297,56 @@ test('ReturnStatements', () => {
   tests.forEach(test => {
     const evaluated = testEval(test.input);
     testIntegerObject(evaluated, test.expected);
+  });
+});
+
+test('ErrorHandling', () => {
+  const tests = [
+    {
+      input: '5 + true;',
+      expected: 'type mismatch: INTEGER + BOOLEAN',
+    },
+    {
+      input: '5 + true; 5;',
+      expected: 'type mismatch: INTEGER + BOOLEAN',
+    },
+    {
+      input: '-true;',
+      expected: 'unknown operator: -BOOLEAN',
+    },
+    {
+      input: 'true + false;',
+      expected: 'unknown operator: BOOLEAN + BOOLEAN',
+    },
+    {
+      input: '5; true + false; 5;',
+      expected: 'unknown operator: BOOLEAN + BOOLEAN',
+    },
+    {
+      input: 'if (10 > 1) { true + false; }',
+      expected: 'unknown operator: BOOLEAN + BOOLEAN',
+    },
+    {
+      input: 'if (10 > 1) { if (10 > 1) { return true + false; } return 1; }',
+      expected: 'unknown operator: BOOLEAN + BOOLEAN',
+    },
+    // {
+    //   input: 'foobar',
+    //   expected: 'identifier not found: foobar',
+    // },
+    // {
+    //   input: '"Hello" - "World"',
+    //   expected: 'unknown operator: STRING - STRING',
+    // },
+    // {
+    //   input: '{"name": "Monkey"}[fn(x) { x }];',
+    //   expected: 'unusable as hash key: FUNCTION',
+    // },
+  ];
+
+  tests.forEach(test => {
+    const evaluated = testEval(test.input);
+    testErrorObject(evaluated, test.expected);
   });
 });
 
@@ -321,4 +372,10 @@ function testBooleanObject(obj: MonkeyObject, expected: boolean): void {
 function testNullObject(obj: MonkeyObject): void {
   expect(obj).toBeInstanceOf(MonkeyNull);
   if (!(obj instanceof MonkeyNull)) return;
+}
+
+function testErrorObject(obj: MonkeyObject, expected: string): void {
+  expect(obj).toBeInstanceOf(MonkeyError);
+  if (!(obj instanceof MonkeyError)) return;
+  expect(obj.message).toBe(expected);
 }

@@ -1,4 +1,4 @@
-type ObjectType = 'INTEGER' | 'BOOLEAN' | 'NULL' | 'RETURN_VALUE';
+type ObjectType = 'INTEGER' | 'BOOLEAN' | 'NULL' | 'RETURN_VALUE' | 'ERROR';
 
 abstract class MonkeyObject {
   abstract type(): ObjectType;
@@ -57,10 +57,25 @@ class MonkeyReturnValue extends MonkeyObject {
   }
 }
 
+class MonkeyError extends MonkeyObject {
+  constructor(public message: string) {
+    super();
+  }
+
+  type(): ObjectType {
+    return 'ERROR';
+  }
+
+  inspect(): string {
+    return `ERROR: ${this.message}`;
+  }
+}
+
 export {
   MonkeyObject,
   MonkeyInteger,
   MonkeyBoolean,
   MonkeyReturnValue,
   MonkeyNull,
+  MonkeyError,
 };

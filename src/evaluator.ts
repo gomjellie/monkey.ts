@@ -13,6 +13,7 @@ import {
 } from './ast';
 import {
   MonkeyBoolean,
+  MonkeyError,
   MonkeyInteger,
   MonkeyNull,
   MonkeyObject,
@@ -32,11 +33,20 @@ function monkeyEval(node: Node): MonkeyObject {
   }
   if (node instanceof PrefixExpression) {
     const right = monkeyEval(node.right);
+    if (isMonkeyError(right)) {
+      return right;
+    }
     return evalPrefixExpression(node.operator, right);
   }
   if (node instanceof InfixExpression) {
     const left = monkeyEval(node.left);
+    if (isMonkeyError(left)) {
+      return left;
+    }
     const right = monkeyEval(node.right);
+    if (isMonkeyError(right)) {
+      return right;
+    }
     return evalInfixExpression(node.operator, left, right);
   }
   if (node instanceof BlockStatement) {
@@ -47,6 +57,9 @@ function monkeyEval(node: Node): MonkeyObject {
   }
   if (node instanceof ReturnStatement) {
     const value = monkeyEval(node.returnValue);
+    if (isMonkeyError(value)) {
+      return value;
+    }
     return new MonkeyReturnValue(value);
   }
   if (node instanceof IntegerLiteral) {
@@ -66,6 +79,9 @@ function evalProgram(statements: Statement[]): MonkeyObject {
     if (result instanceof MonkeyReturnValue) {
       return result.value;
     }
+    if (result instanceof MonkeyError) {
+      return result;
+    }
   }
   return result;
 }
@@ -75,7 +91,7 @@ function evalBlockStatement(statements: Statement[]): MonkeyObject {
   for (const statement of statements) {
     result = monkeyEval(statement);
 
-    if (result instanceof MonkeyReturnValue) {
+    if (result instanceof MonkeyReturnValue || result instanceof MonkeyError) {
       return result; // result.value로 unwrap하지 않고 MonkeyReturnValue를 반환한다.
     }
   }
@@ -84,6 +100,9 @@ function evalBlockStatement(statements: Statement[]): MonkeyObject {
 
 function evalIfExpression(node: IfExpression): MonkeyObject {
   const condition = monkeyEval(node.condition);
+  if (isMonkeyError(condition)) {
+    return condition;
+  }
   if (isTruthy(condition)) {
     return monkeyEval(node.consequence);
   } else if (node.alternative) {
@@ -110,7 +129,7 @@ function evalPrefixExpression(
     case '-':
       return evalMinusPrefixOperatorExpression(right);
     default:
-      return NULL;
+      return new MonkeyError(`unknown operator: ${operator}${right.type()}`);
   }
 }
 
@@ -131,7 +150,7 @@ function evalMinusPrefixOperatorExpression(right: MonkeyObject): MonkeyObject {
   if (right instanceof MonkeyInteger) {
     return new MonkeyInteger(-right.value);
   }
-  return NULL;
+  return new MonkeyError(`unknown operator: -${right.type()}`);
 }
 
 function evalInfixExpression(
@@ -148,7 +167,14 @@ function evalInfixExpression(
   if (operator === '!=') {
     return nativeBooleanToMonkeyBoolean(left !== right);
   }
-  return NULL;
+  if (left.type() !== right.type()) {
+    return new MonkeyError(
+      `type mismatch: ${left.type()} ${operator} ${right.type()}`
+    );
+  }
+  return new MonkeyError(
+    `unknown operator: ${left.type()} ${operator} ${right.type()}`
+  );
 }
 
 function evalIntegerInfixExpression(
@@ -174,15 +200,13 @@ function evalIntegerInfixExpression(
     case '!=':
       return nativeBooleanToMonkeyBoolean(left.value !== right.value);
     default:
-      return NULL;
+      return new MonkeyError(
+        `unknown operator: ${left.type()} ${operator} ${right.type()}`
+      );
   }
 }
 
-/**
- * false, null이 아니면 참이다.
- * @param obj
- * @returns boolean
- */
+/** false, null이 아니면 참이다. */
 function isTruthy(obj: MonkeyObject): boolean {
   if (obj === NULL) {
     return false;
@@ -191,6 +215,10 @@ function isTruthy(obj: MonkeyObject): boolean {
     return false;
   }
   return true;
+}
+
+function isMonkeyError(obj: MonkeyObject): obj is MonkeyError {
+  return obj instanceof MonkeyError;
 }
 
 export {monkeyEval};
