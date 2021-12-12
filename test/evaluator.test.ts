@@ -3,6 +3,7 @@ import {Lexer} from '../src/lexer';
 import {
   MonkeyBoolean,
   MonkeyError,
+  MonkeyFunction,
   MonkeyInteger,
   MonkeyNull,
   MonkeyObject,
@@ -375,6 +376,65 @@ test('LetStatements', () => {
     const evaluated = testEval(test.input);
     testIntegerObject(evaluated, test.expected);
   });
+});
+
+test('FunctionObject', () => {
+  const input = 'fn(x) { x + 2; };';
+
+  const evaluated = testEval(input);
+  expect(evaluated).toBeInstanceOf(MonkeyFunction);
+  if (!(evaluated instanceof MonkeyFunction)) return;
+  expect(evaluated.parameters.length).toBe(1);
+  expect(evaluated.parameters[0].value).toBe('x');
+  expect(evaluated.body.toString()).toEqual('(x + 2)');
+});
+
+test('FunctionApplication', () => {
+  const tests = [
+    {
+      input: 'let identity = fn(x) { x; }; identity(5);', // 암묵적인 값 반환
+      expected: 5,
+    },
+    {
+      input: 'let identity = fn(x) { return x; }; identity(5);', // return 문을 사용해서 반환
+      expected: 5,
+    },
+    {
+      input: 'let double = fn(x) { x * 2; }; double(5);', // 인자를 받아서 반환
+      expected: 10,
+    },
+    {
+      input: 'let add = fn(x, y) { x + y; }; add(5, 5);', // 여러 개의 인자를 받아서 반환
+      expected: 10,
+    },
+    {
+      input: 'let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));', // 함수를 인자로 받아서 반환
+      expected: 20,
+    },
+    {
+      input: 'fn(x) { x; }(5);', // 함수를 호출하는 것과 같은 효과
+      expected: 5,
+    },
+  ];
+
+  tests.forEach(test => {
+    const evaluated = testEval(test.input);
+    testIntegerObject(evaluated, test.expected);
+  });
+});
+
+test('Closures', () => {
+  const input = `
+    let newAdder = fn(x) {
+      fn(y) { x + y; };
+    };
+
+    let addTwo = newAdder(2);
+    addTwo(2);
+  `;
+
+  const evaluated = testEval(input);
+  testIntegerObject(evaluated, 4);
 });
 
 function testEval(input: string): MonkeyObject {

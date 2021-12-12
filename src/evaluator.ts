@@ -12,11 +12,15 @@ import {
   ReturnStatement,
   LetStatement,
   Identifier,
+  FunctionLiteral,
+  CallExpression,
+  Expression,
 } from './ast';
 import {Environment} from './environment';
 import {
   MonkeyBoolean,
   MonkeyError,
+  MonkeyFunction,
   MonkeyInteger,
   MonkeyNull,
   MonkeyObject,
@@ -72,6 +76,22 @@ function monkeyEval(node: Node, env: Environment): MonkeyObject {
     }
     env.set(node.name.value, value);
   }
+  if (node instanceof FunctionLiteral) {
+    const params = node.parameters;
+    const body = node.body;
+    return new MonkeyFunction(params, body, env);
+  }
+  if (node instanceof CallExpression) {
+    const func = monkeyEval(node.func, env);
+    if (isMonkeyError(func)) {
+      return func;
+    }
+    const args = evalExpressions(node.args, env);
+    if (args.some(isMonkeyError)) {
+      return args.find(isMonkeyError)!;
+    }
+    return applyFunction(func, args);
+  }
   if (node instanceof Identifier) {
     return evalIdentifier(node, env);
   }
@@ -82,6 +102,40 @@ function monkeyEval(node: Node, env: Environment): MonkeyObject {
     return nativeBooleanToMonkeyBoolean(node.value);
   }
   return NULL;
+}
+
+function applyFunction(func: MonkeyObject, args: MonkeyObject[]): MonkeyObject {
+  if (!(func instanceof MonkeyFunction)) {
+    return new MonkeyError(`not a function: ${func.type()}`);
+  }
+  const extendedEnv = extendFunctionEnv(func, args);
+  const evaluated = monkeyEval(func.body, extendedEnv);
+  return unwrapReturnValue(evaluated);
+}
+
+function unwrapReturnValue(obj: MonkeyObject): MonkeyObject {
+  if (obj instanceof MonkeyReturnValue) {
+    return obj.value;
+  }
+  return obj;
+}
+
+function extendFunctionEnv(
+  func: MonkeyFunction,
+  args: MonkeyObject[]
+): Environment {
+  const env = new Environment(func.env);
+  for (let i = 0; i < func.parameters.length; i++) {
+    env.set(func.parameters[i].value, args[i]);
+  }
+  return env;
+}
+
+function evalExpressions(
+  expressions: Expression[],
+  env: Environment
+): MonkeyObject[] {
+  return expressions.map(expression => monkeyEval(expression, env));
 }
 
 function evalIdentifier(node: Identifier, env: Environment): MonkeyObject {

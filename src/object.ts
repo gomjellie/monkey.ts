@@ -1,4 +1,13 @@
-type ObjectType = 'INTEGER' | 'BOOLEAN' | 'NULL' | 'RETURN_VALUE' | 'ERROR';
+import {Environment} from './environment';
+import {Identifier, BlockStatement} from './ast';
+
+type ObjectType =
+  | 'INTEGER'
+  | 'BOOLEAN'
+  | 'NULL'
+  | 'RETURN_VALUE'
+  | 'ERROR'
+  | 'FUNCTION';
 
 abstract class MonkeyObject {
   abstract type(): ObjectType;
@@ -71,6 +80,24 @@ class MonkeyError extends MonkeyObject {
   }
 }
 
+class MonkeyFunction extends MonkeyObject {
+  constructor(
+    public parameters: Identifier[],
+    public body: BlockStatement,
+    public env: Environment
+  ) {
+    super();
+  }
+
+  type(): ObjectType {
+    return 'FUNCTION';
+  }
+
+  inspect(): string {
+    return `fn(${this.parameters.join(', ')}) {\n${this.body.toString()}\n}`;
+  }
+}
+
 export {
   MonkeyObject,
   MonkeyInteger,
@@ -78,4 +105,5 @@ export {
   MonkeyReturnValue,
   MonkeyNull,
   MonkeyError,
+  MonkeyFunction,
 };
