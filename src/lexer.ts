@@ -26,7 +26,8 @@ export type TokenType =
   | 'ELSE'
   | 'RETURN'
   | 'TRUE'
-  | 'FALSE';
+  | 'FALSE'
+  | 'STRING';
 
 export type Token = {
   type: TokenType;
@@ -35,14 +36,12 @@ export type Token = {
 
 export class Lexer {
   private readonly source: string;
-  private tokens: Token[];
   private position: number; // 입력에서 현재 위치 (현재 문자를 가리킴)
   private readPosition: number; // 입력에서 현재 읽는 위치(현재 문자의 다음을 가리킴)
   private ch: string | null; // 현재 조사하고 있는 문자
 
   constructor(source: string) {
     this.source = source;
-    this.tokens = [];
     this.position = 0;
     this.readPosition = 0;
     this.ch = null;
@@ -138,6 +137,12 @@ export class Lexer {
       case null:
         tok = {type: 'EOF', literal: ''};
         break;
+      case '"':
+        tok = {
+          type: 'STRING',
+          literal: this.readString(),
+        };
+        break;
       default:
         if (this.isLetter(this.ch)) {
           const literal = this.readIdentifier();
@@ -161,6 +166,15 @@ export class Lexer {
 
     this.readChar();
     return tok;
+  }
+
+  readString() {
+    const position = this.position + 1;
+    this.readChar();
+    while (this.ch !== '"' && this.ch !== null) {
+      this.readChar();
+    }
+    return this.source.slice(position, this.position);
   }
 
   isLetter = (ch: string | null) => {

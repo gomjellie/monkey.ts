@@ -11,6 +11,7 @@ import {
   IfExpression,
   FunctionLiteral,
   CallExpression,
+  StringLiteral,
 } from '../src/ast';
 import {Lexer} from '../src/lexer';
 import {Parser} from '../src/parser';
@@ -370,6 +371,26 @@ test('Parser Should parse If-Else Expression', () => {
   if (!alternativeStmt.expression) return;
 
   testIdentifier(alternativeStmt.expression, 'y');
+});
+
+test('StringLiteral', () => {
+  const input = '"hello world"';
+
+  const l = new Lexer(input);
+  const p = new Parser(l);
+  const program = p.parseProgram();
+  checkParserErrors(p);
+
+  expect(program).not.toBeNull();
+  if (program === null) return;
+  expect(program.statements.length).toBe(1);
+
+  expect(program.statements[0]).toBeInstanceOf(ExpressionStatement);
+  const stmt = program.statements[0] as ExpressionStatement;
+  expect(stmt.expression).toBeInstanceOf(StringLiteral);
+  if (!stmt.expression) return;
+  const literal = stmt.expression as StringLiteral;
+  expect(literal.value).toBe('hello world');
 });
 
 test('Parser Should parse FunctionLiteral', () => {

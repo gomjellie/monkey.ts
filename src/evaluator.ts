@@ -15,6 +15,7 @@ import {
   FunctionLiteral,
   CallExpression,
   Expression,
+  StringLiteral,
 } from './ast';
 import {Environment} from './environment';
 import {
@@ -25,6 +26,7 @@ import {
   MonkeyNull,
   MonkeyObject,
   MonkeyReturnValue,
+  MonkeyString,
 } from './object';
 
 export const TRUE = new MonkeyBoolean(true);
@@ -75,6 +77,9 @@ function monkeyEval(node: Node, env: Environment): MonkeyObject {
       return value;
     }
     env.set(node.name.value, value);
+  }
+  if (node instanceof StringLiteral) {
+    return new MonkeyString(node.value);
   }
   if (node instanceof FunctionLiteral) {
     const params = node.parameters;

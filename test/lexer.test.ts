@@ -39,6 +39,20 @@ test('NextToken should parse simple monkey code', () => {
   };
 
   let result = add(five, ten);
+  !-/*5;
+  5 < 10 > 5;
+
+  if (5 < 10) {
+    return true;
+  } else {
+    return false;
+  }
+
+  10 == 10;
+  10 != 9;
+
+  "foobar";
+  "foo bar";
   `;
 
   const tests: {expectedType: TokenType; expectedLiteral: string}[] = [
@@ -77,6 +91,47 @@ test('NextToken should parse simple monkey code', () => {
     {expectedType: ',', expectedLiteral: ','},
     {expectedType: 'IDENT', expectedLiteral: 'ten'},
     {expectedType: ')', expectedLiteral: ')'},
+    {expectedType: ';', expectedLiteral: ';'},
+    {expectedType: '!', expectedLiteral: '!'},
+    {expectedType: '-', expectedLiteral: '-'},
+    {expectedType: '/', expectedLiteral: '/'},
+    {expectedType: '*', expectedLiteral: '*'},
+    {expectedType: 'INT', expectedLiteral: '5'},
+    {expectedType: ';', expectedLiteral: ';'},
+    {expectedType: 'INT', expectedLiteral: '5'},
+    {expectedType: '<', expectedLiteral: '<'},
+    {expectedType: 'INT', expectedLiteral: '10'},
+    {expectedType: '>', expectedLiteral: '>'},
+    {expectedType: 'INT', expectedLiteral: '5'},
+    {expectedType: ';', expectedLiteral: ';'},
+    {expectedType: 'IF', expectedLiteral: 'if'},
+    {expectedType: '(', expectedLiteral: '('},
+    {expectedType: 'INT', expectedLiteral: '5'},
+    {expectedType: '<', expectedLiteral: '<'},
+    {expectedType: 'INT', expectedLiteral: '10'},
+    {expectedType: ')', expectedLiteral: ')'},
+    {expectedType: '{', expectedLiteral: '{'},
+    {expectedType: 'RETURN', expectedLiteral: 'return'},
+    {expectedType: 'TRUE', expectedLiteral: 'true'},
+    {expectedType: ';', expectedLiteral: ';'},
+    {expectedType: '}', expectedLiteral: '}'},
+    {expectedType: 'ELSE', expectedLiteral: 'else'},
+    {expectedType: '{', expectedLiteral: '{'},
+    {expectedType: 'RETURN', expectedLiteral: 'return'},
+    {expectedType: 'FALSE', expectedLiteral: 'false'},
+    {expectedType: ';', expectedLiteral: ';'},
+    {expectedType: '}', expectedLiteral: '}'},
+    {expectedType: 'INT', expectedLiteral: '10'},
+    {expectedType: '==', expectedLiteral: '=='},
+    {expectedType: 'INT', expectedLiteral: '10'},
+    {expectedType: ';', expectedLiteral: ';'},
+    {expectedType: 'INT', expectedLiteral: '10'},
+    {expectedType: '!=', expectedLiteral: '!='},
+    {expectedType: 'INT', expectedLiteral: '9'},
+    {expectedType: ';', expectedLiteral: ';'},
+    {expectedType: 'STRING', expectedLiteral: 'foobar'},
+    {expectedType: ';', expectedLiteral: ';'},
+    {expectedType: 'STRING', expectedLiteral: 'foo bar'},
     {expectedType: ';', expectedLiteral: ';'},
   ];
 

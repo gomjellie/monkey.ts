@@ -15,6 +15,7 @@ import {
   BlockStatement,
   FunctionLiteral,
   CallExpression,
+  StringLiteral,
 } from './ast';
 import {Lexer, Token, TokenType} from './lexer';
 
@@ -76,6 +77,7 @@ class Parser {
     this.registerPrefix('(', this.parseGroupedExpression);
     this.registerPrefix('IF', this.parseIfExpression);
     this.registerPrefix('FUNCTION', this.parseFunctionLiteral);
+    this.registerPrefix('STRING', this.parseStringLiteral);
     this.registerInfix('(', this.parseCallExpression);
     this.registerInfix('+', this.parseInfixExpression);
     this.registerInfix('-', this.parseInfixExpression);
@@ -88,6 +90,10 @@ class Parser {
     this.nextToken();
     this.nextToken();
   }
+
+  parseStringLiteral = (): Expression => {
+    return new StringLiteral(this.curToken, this.curToken.literal);
+  };
 
   parseIdentifier = () => {
     return new Identifier(this.curToken, this.curToken.literal);

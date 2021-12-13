@@ -43,6 +43,20 @@ class Identifier implements Expression {
   expressionNode(): void {}
 }
 
+class StringLiteral implements Expression {
+  constructor(public token: Token, public value: string) {}
+
+  tokenLiteral(): string {
+    return this.token.literal;
+  }
+
+  toString(): string {
+    return this.token.literal;
+  }
+
+  expressionNode(): void {}
+}
+
 class BooleanLiteral implements Expression {
   constructor(public token: Token, public value: boolean) {}
 
@@ -276,6 +290,7 @@ export {
   IntegerLiteral,
   Expression,
   IllegalExpression,
+  StringLiteral,
   BooleanLiteral,
   FunctionLiteral,
   PrefixExpression,

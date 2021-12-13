@@ -7,7 +7,8 @@ type ObjectType =
   | 'NULL'
   | 'RETURN_VALUE'
   | 'ERROR'
-  | 'FUNCTION';
+  | 'FUNCTION'
+  | 'STRING';
 
 abstract class MonkeyObject {
   abstract type(): ObjectType;
@@ -98,6 +99,20 @@ class MonkeyFunction extends MonkeyObject {
   }
 }
 
+class MonkeyString extends MonkeyObject {
+  constructor(public value: string) {
+    super();
+  }
+
+  type(): ObjectType {
+    return 'STRING';
+  }
+
+  inspect(): string {
+    return `"${this.value}"`;
+  }
+}
+
 export {
   MonkeyObject,
   MonkeyInteger,
@@ -106,4 +121,5 @@ export {
   MonkeyNull,
   MonkeyError,
   MonkeyFunction,
+  MonkeyString,
 };
