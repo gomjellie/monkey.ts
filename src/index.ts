@@ -1,4 +1,4 @@
 import {init} from './repl';
 
-console.log('Wellcome to Monkey Language!');
+console.log('Welcome to Monkey Language!');
 init(process.stdin, process.stdout);
