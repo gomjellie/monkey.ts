@@ -113,7 +113,8 @@ class Parser {
 
   /** ArrowFunction 혹은 GroupExpression 파싱 */
   handleOpenParen = (): Expression => {
-    if (this.peekTokenIs('IDENT')) {
+    this.nextToken();
+    if (this.curTokenIs('IDENT') && !this.peekTokenIs(')')) {
       return this.parseArrowFunction();
     }
     return this.parseGroupedExpressionOrArrowFunction();
@@ -132,7 +133,6 @@ class Parser {
   };
 
   parseGroupedExpressionOrArrowFunction = (): Expression => {
-    this.nextToken();
     const exp = this.parseExpression('LOWEST');
     if (!this.expectPeek(')')) {
       return new IllegalExpression(this.curToken);
@@ -163,7 +163,7 @@ class Parser {
       this.nextToken();
       return identifiers;
     }
-    this.nextToken();
+    this.curTokenIs('IDENT') || this.nextToken();
     identifiers.push(new Identifier(this.curToken, this.curToken.literal));
     while (this.peekTokenIs(',')) {
       this.nextToken();
