@@ -7,6 +7,7 @@ import {
   MonkeyInteger,
   MonkeyNull,
   MonkeyObject,
+  MonkeyString,
 } from '../src/object';
 import {Environment} from '../src/environment';
 import {Parser} from '../src/parser';
@@ -336,10 +337,10 @@ test('ErrorHandling', () => {
       input: 'foobar',
       expected: 'identifier not found: foobar',
     },
-    // {
-    //   input: '"Hello" - "World"',
-    //   expected: 'unknown operator: STRING - STRING',
-    // },
+    {
+      input: '"Hello" - "World"',
+      expected: 'unknown operator: STRING - STRING',
+    },
     // {
     //   input: '{"name": "Monkey"}[fn(x) { x }];',
     //   expected: 'unusable as hash key: FUNCTION',
@@ -437,6 +438,73 @@ test('Closures', () => {
   testIntegerObject(evaluated, 4);
 });
 
+test('Grouped Expression', () => {
+  const test = [
+    {
+      input: 'let a = 5; let b = 10; (a + b);',
+      expected: 15,
+    },
+    {
+      input: 'let a = 5; let b = 10; ((a) + b);',
+      expected: 15,
+    },
+  ];
+
+  test.forEach(t => {
+    const evaluated = testEval(t.input);
+    testIntegerObject(evaluated, t.expected);
+  });
+});
+
+test('HigherOrderFunction', () => {
+  const tests = [
+    {
+      input: `
+        let makeGreeter = (greeting) => { (name) => { greeting + " " + name + "!" } };
+        let greeter = makeGreeter("Hello");
+        greeter("World");
+      `,
+      expected: 'Hello World!',
+    },
+    {
+      input: `
+          let makeGreeter = fn(greeting) { fn(name) { greeting + " " + name + "!" } };
+          let greeter = makeGreeter("Hello");
+          greeter("World");
+        `,
+      expected: 'Hello World!',
+    },
+  ];
+
+  tests.forEach(test => {
+    const evaluated = testEval(test.input);
+    if (!(evaluated instanceof MonkeyString)) return;
+    testStringObject(evaluated, test.expected);
+  });
+});
+
+test('StringConcatenation', () => {
+  const tests = [
+    {
+      input: '"Hello" + " " + "World!"',
+      expected: 'Hello World!',
+    },
+    {
+      input: '"Hello" + " " + "World" + "!"',
+      expected: 'Hello World!',
+    },
+    {
+      input: '"Hello" + " " + "World" + "" + "!"',
+      expected: 'Hello World!',
+    },
+  ];
+
+  tests.forEach(test => {
+    const evaluated = testEval(test.input);
+    testStringObject(evaluated, test.expected);
+  });
+});
+
 function testEval(input: string): MonkeyObject {
   const l = new Lexer(input);
   const p = new Parser(l);
@@ -466,4 +534,10 @@ function testErrorObject(obj: MonkeyObject, expected: string): void {
   expect(obj).toBeInstanceOf(MonkeyError);
   if (!(obj instanceof MonkeyError)) return;
   expect(obj.message).toBe(expected);
+}
+
+function testStringObject(obj: MonkeyObject, expected: string): void {
+  expect(obj).toBeInstanceOf(MonkeyString);
+  if (!(obj instanceof MonkeyString)) return;
+  expect(obj.value).toBe(expected);
 }

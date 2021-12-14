@@ -114,10 +114,28 @@ class Parser {
   /** ArrowFunction 혹은 GroupExpression 파싱 */
   handleOpenParen = (): Expression => {
     this.nextToken();
-    if (this.curTokenIs('IDENT') && !this.peekTokenIs(')')) {
-      return this.parseArrowFunction();
+    const exp = this.parseExpression('LOWEST');
+    if (exp instanceof Identifier) {
+      if (this.peekTokenIs(',')) {
+        return this.parseArrowFunction();
+      }
+      if (this.peekTokenIs(')')) {
+        this.nextToken();
+        if (this.peekTokenIs('=>')) {
+          this.nextToken();
+          if (!this.expectPeek('{')) {
+            return new IllegalExpression(this.curToken);
+          }
+          const body = this.parseBlockStatement();
+          return new FunctionLiteral(this.curToken, [exp], body);
+        }
+        return exp;
+      }
     }
-    return this.parseGroupedExpressionOrArrowFunction();
+    if (!this.expectPeek(')')) {
+      return new IllegalExpression(this.curToken);
+    }
+    return exp;
   };
 
   parseArrowFunction = (): Expression => {
@@ -132,7 +150,7 @@ class Parser {
     return new FunctionLiteral(this.curToken, params, body);
   };
 
-  parseGroupedExpressionOrArrowFunction = (): Expression => {
+  parseGroupedExpression = (): Expression => {
     const exp = this.parseExpression('LOWEST');
     if (!this.expectPeek(')')) {
       return new IllegalExpression(this.curToken);
@@ -371,7 +389,7 @@ class Parser {
     return expression;
   };
 
-  parseExpression(precedence: Precedence) {
+  parseExpression(precedence: Precedence): Expression {
     const prefix = this.prefixParseFns[this.curToken.type];
     if (!prefix) {
       this.noPrefixParseFnError(this.curToken.type);

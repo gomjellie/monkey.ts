@@ -255,6 +255,22 @@ function evalInfixExpression(
       `type mismatch: ${left.type()} ${operator} ${right.type()}`
     );
   }
+  if (left instanceof MonkeyString && right instanceof MonkeyString) {
+    return evalStringInfixExpression(operator, left, right);
+  }
+  return new MonkeyError(
+    `unknown operator: ${left.type()} ${operator} ${right.type()}`
+  );
+}
+
+function evalStringInfixExpression(
+  operator: string,
+  left: MonkeyString,
+  right: MonkeyString
+): MonkeyObject {
+  if (operator === '+') {
+    return new MonkeyString(left.value + right.value);
+  }
   return new MonkeyError(
     `unknown operator: ${left.type()} ${operator} ${right.type()}`
   );
