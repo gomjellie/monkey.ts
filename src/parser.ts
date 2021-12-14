@@ -114,6 +114,16 @@ class Parser {
   /** ArrowFunction 혹은 GroupExpression 파싱 */
   handleOpenParen = (): Expression => {
     this.nextToken();
+    if (this.curTokenIs(')')) {
+      if (this.expectPeek('=>')) {
+        if (!this.expectPeek('{')) {
+          return new IllegalExpression(this.curToken);
+        }
+        const body = this.parseBlockStatement();
+        return new FunctionLiteral(this.curToken, [], body);
+      }
+      return new IllegalExpression(this.curToken);
+    }
     const exp = this.parseExpression('LOWEST');
     if (exp instanceof Identifier) {
       if (this.peekTokenIs(',')) {

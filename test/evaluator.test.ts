@@ -390,6 +390,15 @@ test('FunctionObject', () => {
   expect(evaluated.body.toString()).toEqual('(x + 2)');
 });
 
+test('Empty Arrow Function', () => {
+  const input = '() => { "hello world" }();';
+
+  const evaluated = testEval(input);
+  expect(evaluated).toBeInstanceOf(MonkeyString);
+  if (!(evaluated instanceof MonkeyString)) return;
+  expect(evaluated.value).toBe('hello world');
+});
+
 test('FunctionApplication', () => {
   const tests = [
     {
