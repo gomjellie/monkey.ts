@@ -74,7 +74,7 @@ class Parser {
     this.registerPrefix('!', this.parsePrefixExpression);
     this.registerPrefix('TRUE', this.parseBoolean);
     this.registerPrefix('FALSE', this.parseBoolean);
-    this.registerPrefix('(', this.parseGroupedExpressionOrArrowFunction);
+    this.registerPrefix('(', this.handleOpenParen);
     this.registerPrefix('IF', this.parseIfExpression);
     this.registerPrefix('FUNCTION', this.parseFunctionLiteral);
     this.registerPrefix('STRING', this.parseStringLiteral);
@@ -111,23 +111,29 @@ class Parser {
     return new BooleanLiteral(this.curToken, this.curTokenIs('TRUE'));
   };
 
+  /** ArrowFunction 혹은 GroupExpression 파싱 */
+  handleOpenParen = (): Expression => {
+    if (this.peekTokenIs('IDENT')) {
+      return this.parseArrowFunction();
+    }
+    return this.parseGroupedExpressionOrArrowFunction();
+  };
+
+  parseArrowFunction = (): Expression => {
+    const params = this.parseFunctionParameters();
+    if (!this.expectPeek('=>')) {
+      return new IllegalExpression(this.curToken);
+    }
+    if (!this.expectPeek('{')) {
+      return new IllegalExpression(this.curToken);
+    }
+    const body = this.parseBlockStatement();
+    return new FunctionLiteral(this.curToken, params, body);
+  };
+
   parseGroupedExpressionOrArrowFunction = (): Expression => {
     this.nextToken();
     const exp = this.parseExpression('LOWEST');
-    if (this.peekTokenIs(',')) {
-      if (!(exp instanceof Identifier))
-        return new IllegalExpression(this.curToken);
-      this.nextToken();
-      const params = [exp, ...this.parseFunctionParameters()];
-      if (!this.expectPeek('=>')) {
-        return new IllegalExpression(this.curToken);
-      }
-      if (!this.expectPeek('{')) {
-        return new IllegalExpression(this.curToken);
-      }
-      const body = this.parseBlockStatement();
-      return new FunctionLiteral(this.curToken, params, body);
-    }
     if (!this.expectPeek(')')) {
       return new IllegalExpression(this.curToken);
     }
