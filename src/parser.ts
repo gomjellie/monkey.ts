@@ -280,8 +280,7 @@ class Parser {
   }
 
   /**
-   * expectPeek checks if the next token is of the expected type
-   * side effect: advances the lexer only if it passes check, push error if not
+   * expectPeek checks if the next token is of the expected type and advances the token if it is.
    * @param t the token type to expect
    * @returns true if the next token is of type t
    */
