@@ -4,6 +4,7 @@ export type TokenType =
   | 'EOF'
   | 'IDENT'
   | '='
+  | '=>'
   | '=='
   | '!='
   | '+'
@@ -76,6 +77,12 @@ export class Lexer {
           tok = {
             type: '==',
             literal: '==',
+          };
+        } else if (this.peekChar() === '>') {
+          this.readChar();
+          tok = {
+            type: '=>',
+            literal: '=>',
           };
         } else {
           tok = {

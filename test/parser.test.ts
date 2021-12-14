@@ -419,6 +419,32 @@ test('Parser Should parse FunctionLiteral', () => {
   testInfixExpression(infix, 'x', '+', 'y');
 });
 
+test('Arrow FunctionLiteral', () => {
+  const input = '(x, y) => { x + y; }';
+  const l = new Lexer(input);
+  const p = new Parser(l);
+  const program = p.parseProgram();
+  checkParserErrors(p);
+
+  expect(program).not.toBeNull();
+  if (program === null) return;
+  expect(program.statements.length).toBe(1);
+
+  expect(program.statements[0]).toBeInstanceOf(ExpressionStatement);
+  const stmt = program.statements[0] as ExpressionStatement;
+  expect(stmt.expression).toBeInstanceOf(FunctionLiteral);
+  const fn = stmt.expression as FunctionLiteral;
+  expect(fn.parameters.length).toBe(2);
+  testLiteralExpression(fn.parameters[0], 'x');
+  testLiteralExpression(fn.parameters[1], 'y');
+  expect(fn.body.statements.length).toBe(1);
+  expect(fn.body.statements[0]).toBeInstanceOf(ExpressionStatement);
+  const bodyStmt = fn.body.statements[0] as ExpressionStatement;
+  expect(bodyStmt.expression).toBeInstanceOf(InfixExpression);
+  const infix = bodyStmt.expression as InfixExpression;
+  testInfixExpression(infix, 'x', '+', 'y');
+});
+
 test('Function Parameter Parsing', () => {
   const tests: {input: string; expectedParams: string[]}[] = [
     {input: 'fn() {};', expectedParams: []},

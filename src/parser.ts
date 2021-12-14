@@ -74,7 +74,7 @@ class Parser {
     this.registerPrefix('!', this.parsePrefixExpression);
     this.registerPrefix('TRUE', this.parseBoolean);
     this.registerPrefix('FALSE', this.parseBoolean);
-    this.registerPrefix('(', this.parseGroupedExpression);
+    this.registerPrefix('(', this.parseGroupedExpressionOrArrowFunction);
     this.registerPrefix('IF', this.parseIfExpression);
     this.registerPrefix('FUNCTION', this.parseFunctionLiteral);
     this.registerPrefix('STRING', this.parseStringLiteral);
@@ -111,9 +111,23 @@ class Parser {
     return new BooleanLiteral(this.curToken, this.curTokenIs('TRUE'));
   };
 
-  parseGroupedExpression = (): Expression => {
+  parseGroupedExpressionOrArrowFunction = (): Expression => {
     this.nextToken();
     const exp = this.parseExpression('LOWEST');
+    if (this.peekTokenIs(',')) {
+      if (!(exp instanceof Identifier))
+        return new IllegalExpression(this.curToken);
+      this.nextToken();
+      const params = [exp, ...this.parseFunctionParameters()];
+      if (!this.expectPeek('=>')) {
+        return new IllegalExpression(this.curToken);
+      }
+      if (!this.expectPeek('{')) {
+        return new IllegalExpression(this.curToken);
+      }
+      const body = this.parseBlockStatement();
+      return new FunctionLiteral(this.curToken, params, body);
+    }
     if (!this.expectPeek(')')) {
       return new IllegalExpression(this.curToken);
     }
