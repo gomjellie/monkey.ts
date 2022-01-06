@@ -8,7 +8,8 @@ type ObjectType =
   | 'RETURN_VALUE'
   | 'ERROR'
   | 'FUNCTION'
-  | 'STRING';
+  | 'STRING'
+  | 'BUILTIN';
 
 abstract class MonkeyObject {
   abstract type(): ObjectType;
@@ -113,6 +114,22 @@ class MonkeyString extends MonkeyObject {
   }
 }
 
+type MonkeyBuiltinFunction = (args: MonkeyObject[]) => MonkeyObject;
+
+class MonkeyBuiltin extends MonkeyObject {
+  constructor(public func: MonkeyBuiltinFunction) {
+    super();
+  }
+
+  type(): ObjectType {
+    return 'BUILTIN';
+  }
+
+  inspect(): string {
+    return 'builtin function';
+  }
+}
+
 export {
   MonkeyObject,
   MonkeyInteger,
@@ -122,4 +139,6 @@ export {
   MonkeyError,
   MonkeyFunction,
   MonkeyString,
+  MonkeyBuiltin,
+  MonkeyBuiltinFunction,
 };

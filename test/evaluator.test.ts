@@ -514,6 +514,44 @@ test('StringConcatenation', () => {
   });
 });
 
+test('BuiltinFunctions', () => {
+  const tests = [
+    {
+      input: 'len("")',
+      expected: 0,
+    },
+    {
+      input: 'len("four")',
+      expected: 4,
+    },
+    {
+      input: 'len("hello world")',
+      expected: 11,
+    },
+    {
+      input: 'len("hello world!")',
+      expected: 12,
+    },
+    {
+      input: 'len(1)',
+      expected: 'argument to `len` not supported, got INTEGER',
+    },
+    {
+      input: 'len("one", "two")',
+      expected: 'wrong number of arguments. got=2, want=1',
+    },
+  ];
+
+  tests.forEach(test => {
+    const evaluated = testEval(test.input);
+    if (typeof test.expected === 'number') {
+      testIntegerObject(evaluated, test.expected);
+    } else {
+      testErrorObject(evaluated, test.expected);
+    }
+  });
+});
+
 function testEval(input: string): MonkeyObject {
   const l = new Lexer(input);
   const p = new Parser(l);

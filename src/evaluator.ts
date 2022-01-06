@@ -20,6 +20,7 @@ import {
 import {Environment} from './environment';
 import {
   MonkeyBoolean,
+  MonkeyBuiltin,
   MonkeyError,
   MonkeyFunction,
   MonkeyInteger,
@@ -32,6 +33,25 @@ import {
 export const TRUE = new MonkeyBoolean(true);
 export const FALSE = new MonkeyBoolean(false);
 export const NULL = new MonkeyNull();
+export const builtins: {
+  [key: string]: MonkeyBuiltin;
+} = {
+  len: new MonkeyBuiltin((args: MonkeyObject[]) => {
+    if (args.length !== 1) {
+      return new MonkeyError(
+        `wrong number of arguments. got=${args.length}, want=1`
+      );
+    }
+    const firstArg = args[0];
+    if (firstArg instanceof MonkeyString) {
+      return new MonkeyInteger(firstArg.value.length);
+    }
+
+    return new MonkeyError(
+      `argument to \`len\` not supported, got ${firstArg.type()}`
+    );
+  }),
+};
 
 function monkeyEval(node: Node, env: Environment): MonkeyObject {
   if (node instanceof Program) {
@@ -110,12 +130,15 @@ function monkeyEval(node: Node, env: Environment): MonkeyObject {
 }
 
 function applyFunction(func: MonkeyObject, args: MonkeyObject[]): MonkeyObject {
-  if (!(func instanceof MonkeyFunction)) {
-    return new MonkeyError(`not a function: ${func.type()}`);
+  if (func instanceof MonkeyFunction) {
+    const extendedEnv = extendFunctionEnv(func, args);
+    const evaluated = monkeyEval(func.body, extendedEnv);
+    return unwrapReturnValue(evaluated);
   }
-  const extendedEnv = extendFunctionEnv(func, args);
-  const evaluated = monkeyEval(func.body, extendedEnv);
-  return unwrapReturnValue(evaluated);
+  if (func instanceof MonkeyBuiltin) {
+    return func.func(args);
+  }
+  return new MonkeyError(`not a function: ${func}`);
 }
 
 function unwrapReturnValue(obj: MonkeyObject): MonkeyObject {
@@ -147,6 +170,10 @@ function evalIdentifier(node: Identifier, env: Environment): MonkeyObject {
   const val = env.get(node.value);
   if (val) {
     return val;
+  }
+  const builtin = builtins[node.value];
+  if (builtin) {
+    return builtin;
   }
   return new MonkeyError(`identifier not found: ${node.value}`);
 }
